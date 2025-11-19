@@ -1,0 +1,9 @@
+---
+id: default
+name: Default EN
+description: English output with standard header.
+locale: en-US
+---
+{{header}}
+
+{{transcript}}

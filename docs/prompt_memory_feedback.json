@@ -1,0 +1,16 @@
+{
+  "exec_id": "20251113T103533Z_MSJTU6",
+  "ignored_suggestions": [
+    {
+      "suggestion": "Rodar lint/testes para os módulos JS.",
+      "reason": "Ambiente atual não possui npm. Será tratado no próximo ciclo com ambiente adequado."
+    }
+  ],
+  "threshold_adjustments": [
+    {
+      "metric": "feature_flag_validation",
+      "action": "deferido",
+      "reason": "Projeto ainda não possui camada de flags; será introduzido antes de ativar bloqueios."
+    }
+  ]
+}

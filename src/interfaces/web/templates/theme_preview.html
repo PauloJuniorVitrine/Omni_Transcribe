@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% import "components/ui_macros.html" as ui %}
+
+{% block content %}
+<section>
+  <h2>Paleta & Tokens</h2>
+  <div class="token-grid">
+    <div class="token-chip" style="background: var(--color-primary);">Primary</div>
+    <div class="token-chip" style="background: var(--color-secondary);">Secondary</div>
+    <div class="token-chip" style="background: var(--color-success);">Success</div>
+    <div class="token-chip" style="background: var(--color-warning);">Warning</div>
+    <div class="token-chip" style="background: var(--color-danger);">Danger</div>
+  </div>
+</section>
+
+<section>
+  <h2>Botões</h2>
+  <div class="buttons">
+    {{ ui.button("Primário") }}
+    {{ ui.button("Secundário", "secondary") }}
+  </div>
+</section>
+
+<section>
+  <h2>Badges</h2>
+  <div class="buttons">
+    {{ ui.badge("INFO", "INFO") }}
+    {{ ui.badge("WARNING", "WARNING") }}
+    {{ ui.badge("ERROR", "ERROR") }}
+  </div>
+</section>
+
+<section>
+  <h2>Cards</h2>
+  <div class="summary-grid">
+    {{ ui.card("Summary", "Conteúdo demonstrando o uso do componente card.") }}
+    {{ ui.card("Outro Card", "Mais conteúdo reutilizando tokens.") }}
+  </div>
+</section>
+
+<section>
+  <h2>Timeline</h2>
+  <ul class="timeline">
+    <li class="timeline-item">
+      {{ ui.badge("ℹ️ INFO", "INFO") }}
+      <div>
+        <strong>Evento de exemplo</strong>
+        <p>Mensagem de demonstração para o componente timeline.</p>
+        <small>2025-11-13 12:00</small>
+      </div>
+    </li>
+  </ul>
+</section>
+{% endblock %}

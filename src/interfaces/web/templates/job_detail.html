@@ -1,0 +1,275 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<section>
+  {% if flash_message %}
+  <div
+    class="flash flash-{{ flash_message.variant }}"
+    data-toast="true"
+    data-toast-variant="{{ flash_message.variant }}"
+    role="status"
+  >
+    {{ flash_message.text }}
+  </div>
+  {% endif %}
+  <h2>Job {{ job.id }}</h2>
+  <ul class="job-meta">
+    <li><strong>Arquivo:</strong> {{ job.source_path }}</li>
+    <li><strong>Perfil:</strong> {{ job.profile_id }}</li>
+    <li><strong>Status:</strong> {{ job.status.value }}</li>
+    <li><strong>Engine:</strong> {{ job.engine.value }}</li>
+    <li><strong>Idioma:</strong> {{ job.language or "-" }}</li>
+    <li><strong>Duração:</strong> {{ job.duration_sec or "-" }} s</li>
+  </ul>
+</section>
+
+<section class="accuracy-panel">
+  <h3>Saúde da transcrição</h3>
+  <div class="accuracy-card" data-accuracy-status="{{ accuracy_snapshot.status or 'unknown' }}">
+    <div class="accuracy-card__header">
+      <span class="badge badge-{{ accuracy_snapshot.badge }}">{{ accuracy_snapshot.label }}</span>
+      {% if accuracy_snapshot.updated_at %}
+      <small>Atualizado em {{ accuracy_snapshot.updated_at }}</small>
+      {% else %}
+      <small>Sem medições recentes</small>
+      {% endif %}
+    </div>
+    <dl class="accuracy-stats">
+      <div>
+        <dt>Score consolidado</dt>
+        <dd>{{ accuracy_snapshot.score }}</dd>
+      </div>
+      <div>
+        <dt>Baseline (1 - WER)</dt>
+        <dd>{{ accuracy_snapshot.baseline }}</dd>
+      </div>
+      <div>
+        <dt>Penalidades</dt>
+        <dd>{{ accuracy_snapshot.penalty }}</dd>
+      </div>
+      <div>
+        <dt>WER estimado</dt>
+        <dd>{{ accuracy_snapshot.wer }}</dd>
+      </div>
+    </dl>
+    <p class="accuracy-meta">
+      Fonte base:
+      {% if accuracy_snapshot.reference_source == "client_reference" %}
+      Referência aprovada do cliente
+      {% else %}
+      Saída do ASR
+      {% endif %}
+    </p>
+    {% if accuracy_snapshot.requires_review %}
+    <p class="accuracy-alert">Este job foi marcado para revisão manual devido à acurácia abaixo da meta.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="template-panel" data-surface="template-selector">
+  <h3>Formato de entrega</h3>
+  {% if delivery_templates %}
+  <form
+    method="post"
+    action="/jobs/{{ job.id }}/template"
+    data-ajax="true"
+    data-loading-surface="template-selector"
+    data-success-message="Formato atualizado."
+    data-error-message="N�o foi poss�vel atualizar o formato."
+    data-updated-target="template"
+    data-template-form="true"
+  >
+    <label>
+      Template
+      <select name="template_id" data-template-selector>
+        {% for template in delivery_templates %}
+        <option
+          value="{{ template.id }}"
+          {% if template.id == selected_delivery_template %}selected{% endif %}
+          data-description="{{ template.description }}"
+        >
+          {{ template.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <p class="template-description" data-template-description>
+      {{ selected_template_description or "Selecione um formato para visualizar a descri��o." }}
+    </p>
+    <small class="settings-meta" data-updated-label="template" data-template-updated>
+      {{ template_updated_label }}
+    </small>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar formato</button>
+    </div>
+  </form>
+  <form
+    method="post"
+    action="/jobs/{{ job.id }}/locale"
+    data-ajax="true"
+    data-loading-surface="template-selector"
+    data-success-message="Idioma atualizado."
+    data-error-message="Não foi possível atualizar o idioma."
+    data-updated-target="locale"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
+    <label>
+      Idioma de saída
+      <select name="delivery_locale">
+        <option value="">Automático ({{ job.language or "auto" }})</option>
+        {% for locale in available_locales %}
+        <option value="{{ locale }}" {% if locale == selected_locale %}selected{% endif %}>
+          {{ locale }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <small class="settings-meta" data-updated-label="locale">{{ locale_updated_label }}</small>
+    <div class="actions">
+      <button type="submit" class="btn btn-secondary" data-loading="Salvando...">Salvar idioma</button>
+    </div>
+  </form>
+  {% else %}
+  <p class="text-muted">Nenhum template configurado. Adicione arquivos em <code>profiles/templates</code>.</p>
+  {% endif %}
+</section>
+
+<section>
+  <h3>Artefatos</h3>
+  <ul class="artifact-list">
+    {% for artifact_type, path in artifacts.items() %}
+    {% set extension = path.lower().rsplit(".", 1)[-1] %}
+    {% set allow_preview = extension in ["txt", "srt", "json", "vtt", "csv"] %}
+    <li>
+      <div class="artifact-row">
+        <span class="artifact-label">{{ artifact_type | upper }}</span>
+        <div class="artifact-actions">
+          <a
+            href="/artifacts?path={{ path | urlencode }}&job_id={{ job.id }}"
+            target="_blank"
+            class="btn btn-secondary btn-ghost"
+          >
+            Download
+          </a>
+          {% if allow_preview %}
+          <button
+            type="button"
+            class="btn btn-tertiary"
+            data-preview-url="/artifacts?path={{ path | urlencode }}&job_id={{ job.id }}"
+            data-preview-label="{{ artifact_type | upper }}"
+            data-preview-extension="{{ extension }}"
+          >
+            Visualizar
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+    {% else %}
+    <li>Nenhum artefato disponível.</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section
+  class="job-logs"
+  data-surface="logs-timeline"
+  data-job-logs-endpoint="/api/jobs/{{ job.id }}/logs"
+  data-job-logs-export="/api/jobs/{{ job.id }}/logs/export"
+>
+  <div class="timeline-skeleton" data-skeleton="logs-timeline" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Eventos recentes</h3>
+  <form class="filters" data-log-form>
+    <label>
+      Nível
+      <select name="level" data-log-filter="level">
+        <option value="">Todos</option>
+        {% for level in log_levels %}
+        <option value="{{ level }}">{{ level }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Evento
+      <input type="text" name="event" placeholder="Filtro por evento" data-log-filter="event" />
+    </label>
+    <div class="buttons">
+      <button type="submit" class="btn btn-primary">Filtrar eventos</button>
+      <button type="button" class="btn btn-secondary" data-log-reset>Limpar</button>
+    </div>
+  </form>
+  <small class="filters-meta" data-logs-updated>Atualizado às {{ page_generated_label }}</small>
+  <div class="timeline-actions" data-log-controls hidden>
+    <div class="buttons">
+      <button type="button" class="btn btn-secondary" data-log-export="csv">Exportar CSV</button>
+      <button type="button" class="btn btn-secondary" data-log-export="json">Exportar JSON</button>
+      <button type="button" class="btn btn-primary" data-log-more hidden>Ver mais</button>
+    </div>
+  </div>
+  <ul class="timeline" data-log-list>
+    <li>Carregando eventos...</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Transcrição (prévia)</h3>
+  <pre class="transcript">{{ transcript_preview or "Nenhum conteúdo disponível." }}</pre>
+</section>
+
+<section class="review-panel" data-surface="review-panel">
+  <div class="action-skeleton" data-skeleton="review-panel" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Revisão humana</h3>
+  <form
+    method="post"
+    action="/jobs/{{ job.id }}/review"
+    data-confirm="Confirmar envio da revisão?"
+    data-loading-surface="review-panel"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
+    <label>
+      Revisor
+      <input type="text" name="reviewer" required />
+    </label>
+    <label>
+      Observações
+      <textarea name="notes" rows="3"></textarea>
+    </label>
+    <div class="actions">
+      <button type="submit" name="decision" value="approve" class="btn btn-primary" data-loading="Enviando...">Aprovar</button>
+      <button type="submit" name="decision" value="adjust" class="btn btn-secondary" data-loading="Enviando...">Precisa de ajustes</button>
+    </div>
+  </form>
+</section>
+
+{% if feature_flags["jobs.manual_reprocess"] %}
+<section class="job-process" data-surface="job-actions">
+  <div class="action-skeleton" data-skeleton="job-actions" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Processamento manual</h3>
+  <form
+    method="post"
+    action="/jobs/{{ job.id }}/process"
+    data-confirm="Confirmar reprocessamento do job?"
+    data-enhanced-process="true"
+    data-process-endpoint="/api/jobs/{{ job.id }}/process"
+    data-process-success-label="Processamento assíncrono iniciado."
+    data-process-error-label="Falha ao iniciar o processamento."
+    data-loading-surface="job-actions"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
+    <p>Solicita o pipeline completo (ASR -> pós -> artefatos) com base nos dados atuais.</p>
+    <button type="submit" class="btn btn-primary" data-loading="Processando...">Iniciar processamento</button>
+  </form>
+  <small class="process-status" data-process-status>Pronto para solicitar reprocessamento.</small>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,164 @@
+{"timestamp": "2025-11-14T11:47:14.021725+00:00", "action": "create", "template_id": "pw-1763120833784", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-14T11:47:23.917263+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T11:47:45.298683+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T11:47:45.315055+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:03:07.180220+00:00", "action": "create", "template_id": "pw-1763121786878", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-14T12:03:07.318345+00:00", "action": "delete", "template_id": "pw-1763121786878", "metadata": {}}
+{"timestamp": "2025-11-14T12:03:18.439018+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:04:03.440332+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:06:14.529907+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:06:56.721767+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:07:24.905179+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:07:54.258197+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:08:21.996202+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:17:03.540557+00:00", "action": "create", "template_id": "pw-1763122623244", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-14T12:17:03.674942+00:00", "action": "delete", "template_id": "pw-1763122623244", "metadata": {}}
+{"timestamp": "2025-11-14T12:17:17.626176+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:19:24.782402+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:22:02.770129+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:22:47.341163+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:23:31.547027+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:24:00.491844+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:25:23.392437+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:26:42.463793+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:27:27.545026+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:27:57.801137+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:30:32.234714+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:30:38.490740+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:30:49.506747+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:30:59.715408+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:31:35.943838+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:31:35.963585+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:31:44.220237+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:31:44.284204+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:38:20.212283+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:38:20.235547+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:46:03.111526+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:46:03.138098+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:48:22.607200+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:48:22.623368+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:48:35.296953+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:48:35.315594+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:58:25.064400+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:58:25.092489+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T12:59:15.512595+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T12:59:15.529039+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T13:16:45.313211+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T13:16:45.331209+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T13:17:34.733171+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T13:17:34.748925+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T13:37:05.224043+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T13:37:05.244017+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T13:57:41.055280+00:00", "action": "create", "template_id": "pw-1763128660536", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-14T13:57:41.448682+00:00", "action": "delete", "template_id": "pw-1763128660536", "metadata": {}}
+{"timestamp": "2025-11-14T13:58:10.665718+00:00", "action": "create", "template_id": "pw-1763128689192", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-14T13:58:11.257015+00:00", "action": "delete", "template_id": "pw-1763128689192", "metadata": {}}
+{"timestamp": "2025-11-14T13:58:28.110635+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T13:58:28.147588+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T14:47:36.281981+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T14:47:36.312217+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T14:48:28.093331+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T14:48:28.121243+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T15:40:43.789797+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T15:40:43.814368+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T15:43:38.532947+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T15:43:38.562377+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T15:44:49.379387+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T15:44:50.216461+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T15:49:04.729182+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T15:49:04.755588+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:03:17.165053+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:03:17.197814+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:08:16.166320+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:08:16.192737+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:08:48.167971+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:08:48.213771+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:09:23.899268+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:09:23.925590+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:10:01.248129+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:10:01.276092+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:20:09.025445+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:20:09.054765+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:20:36.521696+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:20:36.550896+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:21:07.199639+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:21:07.230723+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:28:55.093127+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:28:55.127514+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:34:27.942451+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:34:27.972383+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:35:01.651816+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:35:01.682088+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:42:29.967811+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:42:29.994310+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:44:13.694856+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T16:44:26.675427+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:44:26.702935+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:44:26.778335+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T16:46:51.137955+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:46:51.196613+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:46:52.315633+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T16:51:13.769388+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T16:52:33.116776+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:52:33.142154+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:52:33.219517+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T16:52:33.293630+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T16:54:21.397423+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T16:54:21.431542+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T16:54:21.507843+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T16:54:21.614271+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:00:11.975259+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:00:12.021536+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:00:33.267401+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:00:33.315470+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:00:34.591291+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:00:34.713267+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:00:34.759000+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:00:35.951909+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:06:43.413609+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:06:43.548305+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:07:09.446015+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:07:09.485892+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:07:09.779718+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:07:09.844739+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:07:09.882913+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:07:09.945869+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:11:41.425016+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:11:41.555696+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:11:41.630482+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:12:06.472504+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:12:06.532916+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:12:07.457015+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:12:07.825080+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:12:07.857307+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:12:08.019152+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:12:45.936382+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:12:45.967635+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:12:46.420497+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:12:46.534726+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:12:46.660169+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:12:46.886227+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:14:46.676946+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:14:46.722170+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:14:46.949440+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:14:47.029199+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:14:47.069815+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:14:47.136870+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:15:56.858308+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:15:56.888716+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:15:57.426261+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:15:57.476161+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:15:57.500141+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:15:57.584313+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:20:31.610804+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:20:31.637243+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:20:31.897384+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:20:32.031439+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:20:32.058832+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:20:32.124886+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-14T17:20:55.310723+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-14T17:20:55.338048+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-14T17:20:55.480082+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-14T17:20:55.589098+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-14T17:20:55.617614+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-14T17:20:55.749260+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}

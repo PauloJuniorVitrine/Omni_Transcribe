@@ -1,0 +1,6 @@
+---
+description: ''
+id: pw-1763119650652
+name: Playwright Template
+---
+{{header}}\n\nTest template for {{transcript}}

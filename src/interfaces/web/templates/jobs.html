@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="jobs-view" data-surface="jobs-feed">
+  {% if flash_message %}
+  <div
+    class="flash flash-{{ flash_message.variant }}"
+    data-toast="true"
+    data-toast-variant="{{ flash_message.variant }}"
+    role="status"
+  >
+    {{ flash_message.text }}
+  </div>
+  {% endif %}
+  <div
+    class="summary-panel"
+    {% if feature_flags["dashboard.live_summary"] %}
+    data-live-summary-endpoint="/api/dashboard/summary"
+    data-refresh-interval="30"
+    data-loading-surface="summary-cards"
+    data-surface="summary-cards"
+    {% endif %}
+  >
+    <div class="summary-grid" data-surface="summary-cards">
+      <div class="summary-card">
+        <p>Total</p>
+        <strong data-summary-field="total">{{ summary.total }}</strong>
+      </div>
+      <div class="summary-card">
+        <p>Aguardando revisão</p>
+        <strong data-summary-field="awaiting_review">{{ summary.awaiting_review }}</strong>
+      </div>
+      <div class="summary-card">
+        <p>Aprovados</p>
+        <strong data-summary-field="approved">{{ summary.approved }}</strong>
+      </div>
+      <div class="summary-card">
+        <p>Falhas/Rejeitados</p>
+        <strong data-summary-field="failed">{{ summary.failed }}</strong>
+      </div>
+      <div class="summary-card summary-card--accent">
+        <p>Jobs com precisão avaliada</p>
+        <strong data-accuracy-field="evaluated">{{ accuracy_summary.evaluated or 0 }}</strong>
+      </div>
+      <div class="summary-card">
+        <p>Média de score</p>
+        <strong data-accuracy-field="average_score">
+          {% if accuracy_summary.average_score is not none %}
+          {{ (accuracy_summary.average_score * 100) | round(2) }}%
+          {% else %}
+          -
+          {% endif %}
+        </strong>
+        <small data-accuracy-field="average_wer">
+          {% if accuracy_summary.average_wer is not none %}
+          WER médio {{ (accuracy_summary.average_wer * 100) | round(2) }}%
+          {% else %}
+          WER médio N/A
+          {% endif %}
+        </small>
+      </div>
+      <div class="summary-card">
+        <p>Necessitam revisão</p>
+        <strong data-accuracy-field="needs_review">{{ accuracy_summary.needs_review or 0 }}</strong>
+      </div>
+    </div>
+    <div class="summary-meta">
+      <small data-summary-updated>Atualizado no carregamento inicial</small>
+    </div>
+    <div class="skeleton-grid skeleton-grid--compact" data-skeleton="summary-cards" hidden aria-hidden="true">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+  </div>
+
+  <div class="skeleton-grid" data-skeleton="jobs-feed" hidden aria-hidden="true">
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+
+  <form
+    method="get"
+    class="filters"
+    data-loading-skeleton="jobs-feed"
+    data-loading-surface="jobs-feed"
+    data-updated-label="filters"
+  >
+    <label>
+      Status
+      <select name="status">
+        <option value="">Todos</option>
+        {% for value in status_options %}
+        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>
+          {{ value }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Perfil
+      <select name="profile">
+        <option value="">Todos</option>
+        {% for value in profile_options %}
+        <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>
+          {{ value }}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Precisão
+      <select name="accuracy">
+        <option value="">Todos</option>
+        {% for value in accuracy_options %}
+        <option value="{{ value }}" {% if value == selected_accuracy %}selected{% endif %}>
+          {% if value == "needs_review" %}
+          Requer revisão
+          {% else %}
+          Dentro da meta
+          {% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+    <a href="/" class="link-reset" data-loading-skeleton="jobs-feed">Limpar</a>
+  </form>
+  <small class="filters-meta" data-filters-updated>Atualizado às {{ page_generated_label }}</small>
+
+  {% if feature_flags["dashboard.live_incidents"] %}
+  <section
+    class="incident-panel"
+    data-live-incidents-endpoint="/api/dashboard/incidents"
+    data-refresh-interval="45"
+    data-empty-label="Nenhum incidente crítico."
+    data-loading-surface="incident-panel"
+    data-surface="incident-panel"
+    data-surface="incident-panel"
+  >
+    <div class="section-header">
+      <div>
+        <h2>Incidentes recentes</h2>
+        <p>Monitoramento contínuo do pipeline</p>
+      </div>
+      <small data-incidents-updated>Atualizado no carregamento inicial</small>
+    </div>
+    <div class="incident-skeleton" data-skeleton="incident-panel" hidden aria-hidden="true">
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line"></div>
+    </div>
+    <ul class="incident-list" data-incident-list>
+      {% for item in incidents %}
+      <li class="incident-item">
+        <div class="incident-body">
+          <span class="badge badge-{{ item.level | upper }}">{{ item.icon }} {{ item.level | upper }}</span>
+          <div>
+            <strong>{{ item.event }}</strong>
+            <p>{{ item.message or "Sem detalhes adicionais." }}</p>
+          </div>
+        </div>
+        <div class="incident-meta">
+          <span>{{ item.timestamp_human }}</span>
+          <a href="/jobs/{{ item.job_id }}">Job {{ item.job_id }}</a>
+        </div>
+      </li>
+      {% else %}
+      <li class="incident-empty">Nenhum incidente crítico.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% else %}
+  <section class="incident-panel disabled">
+    <div class="section-header">
+      <div>
+        <h2>Incidentes recentes</h2>
+        <p>Monitoramento desativado via feature flag.</p>
+      </div>
+    </div>
+    <p class="text-muted">Ative `dashboard.live_incidents` para reexibir este painel.</p>
+  </section>
+  {% endif %}
+
+  <h2>Jobs recentes</h2>
+  <table aria-label="Tabela de jobs recentes">
+    <caption class="sr-only">Lista de jobs processados com status e precisão</caption>
+    <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Arquivo</th>
+        <th scope="col">Perfil</th>
+        <th scope="col">Status</th>
+        <th scope="col">Idioma</th>
+        <th scope="col">Precisão</th>
+        <th scope="col">Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td>{{ job.id }}</td>
+        <td>{{ job.source_path.name }}</td>
+        <td>{{ job.profile_id }}</td>
+        <td>{{ job.status.value }}</td>
+        <td>{{ job.language or "-" }}</td>
+        <td>
+          {% set accuracy = job.metadata.get("accuracy_status") if job.metadata else "" %}
+          {% if accuracy %}
+          {% if accuracy == "needs_review" %}
+          <span class="badge badge-warning" aria-label="Precisão: requer revisão">Rever</span>
+          {% elif accuracy == "passing" %}
+          <span class="badge badge-success" aria-label="Precisão: dentro da meta">OK</span>
+          {% else %}
+          <span class="badge">{{ accuracy }}</span>
+          {% endif %}
+          {% else %}
+          -
+          {% endif %}
+        </td>
+        <td>
+          <a href="/jobs/{{ job.id }}">Ver detalhes</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6">Nenhum job encontrado.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

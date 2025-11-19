@@ -1,0 +1,258 @@
+﻿﻿<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>TranscribeFlow</title>
+    <link rel="stylesheet" href="/static/theme.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="branding">
+  <div class="logo-mark">TF</div>
+  <div class="brand-text">
+    <strong>TranscribeFlow</strong>
+    <small>Automação de áudio</small>
+  </div>
+</div>
+      <nav class="main-nav">
+        <a href="/">Jobs</a>
+        <a href="/ui/theme-preview">Tema</a>
+        <a href="/settings/api">Configurações</a>
+      </nav>
+      <div class="session-indicator">
+        
+        <span class="session-avatar">SE</span>
+        <div class="session-meta">
+          <strong>Sessão AUTH</strong>
+          <small>Sessão ativa</small>
+        </div>
+        
+      </div>
+    </header>
+    <main>
+      
+<section>
+  
+  <h2>Job job-e2e</h2>
+  <ul class="job-meta">
+    <li><strong>Arquivo:</strong> C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\inbox\job-e2e.wav</li>
+    <li><strong>Perfil:</strong> profile-e2e</li>
+    <li><strong>Status:</strong> awaiting_review</li>
+    <li><strong>Engine:</strong> openai</li>
+    <li><strong>Idioma:</strong> pt-BR</li>
+    <li><strong>Duração:</strong> 60.0 s</li>
+  </ul>
+</section>
+
+<section class="template-panel" data-surface="template-selector">
+  <h3>Formato de entrega</h3>
+  
+  <form
+    method="post"
+    action="/jobs/job-e2e/template"
+    data-ajax="true"
+    data-loading-surface="template-selector"
+    data-success-message="Formato atualizado."
+    data-error-message="N�o foi poss�vel atualizar o formato."
+    data-updated-target="template"
+    data-template-form="true"
+  >
+    <label>
+      Template
+      <select name="template_id" data-template-selector>
+        
+        <option
+          value="briefing"
+          
+          data-description="Remove cabeçalho e mantém apenas o texto editado."
+        >
+          Briefing Curto
+        </option>
+        
+        <option
+          value="default"
+          selected
+          data-description="Estrutura genérica com cabeçalho e corpo."
+        >
+          Formato Padrão
+        </option>
+        
+      </select>
+    </label>
+    <p class="template-description" data-template-description>
+      Estrutura genérica com cabeçalho e corpo.
+    </p>
+    <small class="settings-meta" data-updated-label="template" data-template-updated>
+      Formato nunca atualizado.
+    </small>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar formato</button>
+    </div>
+  </form>
+  
+</section>
+
+<section>
+  <h3>Artefatos</h3>
+  <ul class="artifact-list">
+    
+    
+    
+    <li>
+      <div class="artifact-row">
+        <span class="artifact-label">TXT</span>
+        <div class="artifact-actions">
+          <a
+            href="/artifacts?path=C%3A%5CUsers%5CUser%5CDesktop%5CNova%20pasta%5CPROJETOS%5COmni%20Transcribe%5Coutput%5Cjob-e2e%5Cjob-e2e_v1.txt&job_id=job-e2e"
+            target="_blank"
+            class="btn btn-secondary btn-ghost"
+          >
+            Download
+          </a>
+          
+          <button
+            type="button"
+            class="btn btn-tertiary"
+            data-preview-url="/artifacts?path=C%3A%5CUsers%5CUser%5CDesktop%5CNova%20pasta%5CPROJETOS%5COmni%20Transcribe%5Coutput%5Cjob-e2e%5Cjob-e2e_v1.txt&job_id=job-e2e"
+            data-preview-label="TXT"
+            data-preview-extension="txt"
+          >
+            Visualizar
+          </button>
+          
+        </div>
+      </div>
+    </li>
+    
+  </ul>
+</section>
+
+<section
+  class="job-logs"
+  data-surface="logs-timeline"
+  data-job-logs-endpoint="/api/jobs/job-e2e/logs"
+  data-job-logs-export="/api/jobs/job-e2e/logs/export"
+>
+  <div class="timeline-skeleton" data-skeleton="logs-timeline" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Eventos recentes</h3>
+  <form class="filters" data-log-form>
+    <label>
+      Nível
+      <select name="level" data-log-filter="level">
+        <option value="">Todos</option>
+        
+        <option value="info">info</option>
+        
+        <option value="warning">warning</option>
+        
+        <option value="error">error</option>
+        
+      </select>
+    </label>
+    <label>
+      Evento
+      <input type="text" name="event" placeholder="Filtro por evento" data-log-filter="event" />
+    </label>
+    <div class="buttons">
+      <button type="submit" class="btn btn-primary">Filtrar eventos</button>
+      <button type="button" class="btn btn-secondary" data-log-reset>Limpar</button>
+    </div>
+  </form>
+  <small class="filters-meta" data-logs-updated>Atualizado às 14/11/2025 11:10:34</small>
+  <div class="timeline-actions" data-log-controls hidden>
+    <div class="buttons">
+      <button type="button" class="btn btn-secondary" data-log-export="csv">Exportar CSV</button>
+      <button type="button" class="btn btn-secondary" data-log-export="json">Exportar JSON</button>
+      <button type="button" class="btn btn-primary" data-log-more hidden>Ver mais</button>
+    </div>
+  </div>
+  <ul class="timeline" data-log-list>
+    <li>Carregando eventos...</li>
+  </ul>
+</section>
+
+<section>
+  <h3>Transcrição (prévia)</h3>
+  <pre class="transcript">Conteúdo de teste</pre>
+</section>
+
+<section class="review-panel" data-surface="review-panel">
+  <div class="action-skeleton" data-skeleton="review-panel" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Revisão humana</h3>
+  <form
+    method="post"
+    action="/jobs/job-e2e/review"
+    data-confirm="Confirmar envio da revisão?"
+    data-loading-surface="review-panel"
+  >
+    <label>
+      Revisor
+      <input type="text" name="reviewer" required />
+    </label>
+    <label>
+      Observações
+      <textarea name="notes" rows="3"></textarea>
+    </label>
+    <div class="actions">
+      <button type="submit" name="decision" value="approve" class="btn btn-primary" data-loading="Enviando...">Aprovar</button>
+      <button type="submit" name="decision" value="adjust" class="btn btn-secondary" data-loading="Enviando...">Precisa de ajustes</button>
+    </div>
+  </form>
+</section>
+
+
+<section class="job-process" data-surface="job-actions">
+  <div class="action-skeleton" data-skeleton="job-actions" hidden aria-hidden="true">
+    <div class="skeleton-line"></div>
+  </div>
+  <h3>Processamento manual</h3>
+  <form
+    method="post"
+    action="/jobs/job-e2e/process"
+    data-confirm="Confirmar reprocessamento do job?"
+    data-enhanced-process="true"
+    data-process-endpoint="/api/jobs/job-e2e/process"
+    data-process-success-label="Processamento assíncrono iniciado."
+    data-process-error-label="Falha ao iniciar o processamento."
+    data-loading-surface="job-actions"
+  >
+    <p>Solicita o pipeline completo (ASR -> pós -> artefatos) com base nos dados atuais.</p>
+    <button type="submit" class="btn btn-primary" data-loading="Processando...">Iniciar processamento</button>
+  </form>
+  <small class="process-status" data-process-status>Pronto para solicitar reprocessamento.</small>
+</section>
+
+
+    </main>
+    <div
+      class="modal"
+      id="artifact-modal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="artifact-modal-title"
+    >
+      <div class="modal-backdrop" data-dismiss-modal></div>
+      <div class="modal-dialog" tabindex="-1">
+        <header class="modal-header">
+          <h3 id="artifact-modal-title" data-modal-title>Pré-visualização</h3>
+          <button type="button" class="modal-close" data-dismiss-modal aria-label="Fechar pré-visualização">
+            &times;
+          </button>
+        </header>
+        <div class="modal-body">
+          <pre data-modal-content>Selecione um artefato para visualizar.</pre>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

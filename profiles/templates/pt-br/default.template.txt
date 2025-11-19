@@ -1,0 +1,9 @@
+---
+id: default
+name: Formato Padrão PT
+description: Estrutura otimizada para português do Brasil.
+locale: pt-BR
+---
+{{header}}
+
+{{transcript}}

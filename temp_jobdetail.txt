@@ -1,0 +1,36 @@
+﻿async def job_detail(
+    job_id: str,
+    request: Request,
+    job_controller: JobController = Depends(get_job_controller_dep),
+    _: dict | None = Depends(require_active_session),
+) -> HTMLResponse:
+    job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
+    if not job:
+        raise HTTPException(status_code=404, detail="Job não encontrado")
+    artifacts = _serialize_artifacts(job.output_paths)
+    show_all_logs = request.query_params.get("logs") == "all"
+    page = request.query_params.get("logs_page")
+    page_number = max(int(page), 1) if (page and page.isdigit()) else 1
+    log_entries, has_more_logs = _get_job_logs(
+        job_id,
+        limit=None if show_all_logs else 20,
+        page=None if show_all_logs else page_number,
+    )
+    transcript_preview = ""
+    transcript_path = job.output_paths.get(ArtifactType.TRANSCRIPT_TXT)
+    if transcript_path and Path(transcript_path).exists():
+        transcript_preview = Path(transcript_path).read_text(encoding="utf-8")
+    flash_message = _get_flash_message(request.query_params.get("flash"))
+    context = {
+        "request": request,
+        "job": job,
+        "artifacts": artifacts,
+        "transcript_preview": transcript_preview,
+        "logs": log_entries,
+        "show_all_logs": show_all_logs,
+        "logs_page": page_number,
+        "logs_has_more": has_more_logs,
+        "level_icons": {level.value: icon for level, icon in _LEVEL_ICONS.items()},
+        "flash_message": flash_message,
+    }
+    return templates

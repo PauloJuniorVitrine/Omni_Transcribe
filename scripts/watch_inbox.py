@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from interfaces.cli.watch_inbox import main
+
+if __name__ == "__main__":
+    main()

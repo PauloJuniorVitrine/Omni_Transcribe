@@ -1,0 +1,19 @@
+{
+  "tracing_id": "20251113T103533Z_MSJTU6",
+  "total_melhorias": 3,
+  "score_medio_inicial": 58.0,
+  "score_medio_final": 82.0,
+  "impactos_criticos": 1,
+  "enriquecimentos_aplicados": 2,
+  "base_logs_producao": false,
+  "score_por_sprint": [
+    { "sprint": 1, "media_inicial": 58.0, "final": 70.0 },
+    { "sprint": 2, "media_inicial": 70.0, "final": 82.0 }
+  ],
+  "versao_estrutura": "v2.3-enterprise+",
+  "custo_estimado_total_horas": 38,
+  "media_risco_regressao": "médio",
+  "custo_tokens_total": 9500,
+  "tempo_execucao_total_segundos": 410,
+  "notificacoes_disparadas": false
+}

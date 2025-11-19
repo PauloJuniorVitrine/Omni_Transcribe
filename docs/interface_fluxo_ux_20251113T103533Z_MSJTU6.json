@@ -1,0 +1,29 @@
+﻿{
+  "flows": [
+    {
+      "id": "flow-job-review",
+      "title": "Revisar e aprovar job",
+      "steps": [
+        {"id": "step-dashboard", "action": "Usuário acessa /, vê tabela, clica em job"},
+        {"id": "step-detail", "action": "Analisa metadados, preview, baixa artefatos"},
+        {"id": "step-review-form", "action": "Preenche reviewer + decisão, envia"},
+        {"id": "step-feedback", "action": "Recebe flash + redirect"}
+      ],
+      "error_case": "Falha de download ou sessão expirada",
+      "feedback_missing": "Sem loader ao enviar formulário",
+      "ambiguous_decision": "Não há motivo claro para reprocessar vs aprovar"
+    },
+    {
+      "id": "flow-process-job",
+      "title": "Reprocessar job",
+      "steps": [
+        {"id": "detail-page", "action": "Usuário clica em botao Iniciar processamento"},
+        {"id": "server-processing", "action": "Pipeline roda em background"},
+        {"id": "flash", "action": "Flash informa início"}
+      ],
+      "error_case": "Processo falha — flash genérico",
+      "feedback_missing": "Sem indicador de progresso",
+      "ambiguous_decision": "Usuário pode repetir sem saber se terminou"
+    }
+  ]
+}

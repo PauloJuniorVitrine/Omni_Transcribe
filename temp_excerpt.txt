@@ -1,0 +1,100 @@
+) -> JSONResponse:
+    incidents = _get_recent_incidents(limit=limit)
+    payload = {
+        "items": incidents,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    record_metric("dashboard.incidents.requested", {"count": len(incidents), "limit": limit})
+    return JSONResponse(payload)
+
+
+@app.get("/settings/api", response_class=HTMLResponse)
+async def api_settings_page(
+    request: Request,
+    session: dict | None = Depends(require_active_session),
+) -> HTMLResponse:
+    feature_flags = _feature_flags_snapshot()
+    if not feature_flags.get("ui.api_settings", True):
+        raise HTTPException(status_code=404, detail="Configuração indisponível.")
+    flash = _get_flash_message(request.query_params.get("flash"))
+    credentials = _runtime_store.read()
+    whisper = credentials.get("whisper", {})
+    chatgpt = credentials.get("chatgpt", {})
+    context = {
+        "flash_message": flash,
+        "header_session": _summarize_session(session),
+        "whisper": {
+            "api_key": whisper.get("api_key", ""),
+            "model": whisper.get("model", AVAILABLE_WHISPER_MODELS[0]),
+        },
+        "chatgpt": {
+            "api_key": chatgpt.get("api_key", ""),
+            "model": chatgpt.get("model", AVAILABLE_CHATGPT_MODELS[0]),
+        },
+        "whisper_models": AVAILABLE_WHISPER_MODELS,
+        "chatgpt_models": AVAILABLE_CHATGPT_MODELS,
+        "feature_flags": feature_flags,
+    }
+    return templates.TemplateResponse(request, "api_settings.html", context)
+
+
+@app.post("/settings/api")
+async def api_settings_update(
+    request: Request,
+    target: str = Form(...),
+    whisper_api_key: str = Form(""),
+    whisper_model: str = Form(""),
+    chatgpt_api_key: str = Form(""),
+    chatgpt_model: str = Form(""),
+    _: dict | None = Depends(require_active_session),
+) -> Response:
+    if whisper_model not in AVAILABLE_WHISPER_MODELS:
+        whisper_model = AVAILABLE_WHISPER_MODELS[0]
+    if chatgpt_model not in AVAILABLE_CHATGPT_MODELS:
+        chatgpt_model = AVAILABLE_CHATGPT_MODELS[0]
+    if target == "whisper":
+        _runtime_store.update(whisper_api_key=whisper_api_key, whisper_model=whisper_model)
+    elif target == "chatgpt":
+        _runtime_store.update(chatgpt_api_key=chatgpt_api_key, chatgpt_model=chatgpt_model)
+    else:
+        _runtime_store.update(
+            whisper_api_key=whisper_api_key,
+            whisper_model=whisper_model,
+            chatgpt_api_key=chatgpt_api_key,
+            chatgpt_model=chatgpt_model,
+        )
+    reload_settings()
+    flash_token = "api-settings-saved"
+    accept = (request.headers.get("accept") or "").lower()
+    if "application/json" in accept:
+        now_iso = datetime.now(timezone.utc).isoformat()
+        now_human = datetime.now(timezone.utc).strftime("%H:%M:%S")
+        payload = {
+            "status": "ok",
+            "flash": flash_token,
+            "message": _FLASH_MESSAGES[flash_token]["text"],
+            "updated_at": now_iso,
+            "updated_at_human": now_human,
+            "target": target,
+        }
+        return JSONResponse(payload)
+    return RedirectResponse("/settings/api?flash=api-settings-saved", status_code=303)
+
+
+@app.get("/ui/theme-preview", response_class=HTMLResponse)
+async def theme_preview(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        "theme_preview.html",
+        {
+            "header_session": None,
+        },
+    )
+
+
+@app.post("/api/jobs/{job_id}/process")
+async def api_process_job(
+    job_id: str,
+    job_controller: JobController = Depends(get_job_controller_dep),
+    _: dict | None = Depends(require_active_session),
+) -> JSONResponse:

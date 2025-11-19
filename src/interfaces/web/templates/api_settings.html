@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="api-settings" data-surface="api-settings">
+  <header class="section-header">
+    <div>
+      <h2>APIs & Modelos</h2>
+      <p>Gerencie as credenciais usadas pelo Whisper (ASR) e ChatGPT (pós-edição).</p>
+    </div>
+    {% if flash_message %}
+    <div
+      class="flash flash-{{ flash_message.variant }}"
+      data-toast="true"
+      data-toast-variant="{{ flash_message.variant }}"
+    >
+      {{ flash_message.text }}
+    </div>
+    {% endif %}
+  </header>
+
+  <div class="settings-skeleton" data-skeleton="api-settings" hidden aria-hidden="true">
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+
+  <div class="settings-grid">
+    <form
+      method="post"
+      class="card settings-card"
+      data-loading-surface="api-settings"
+      data-ajax="true"
+      data-success-message="Credenciais Whisper atualizadas."
+    data-error-message="Não foi possível salvar Whisper."
+    data-updated-target="whisper"
+  >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
+      <input type="hidden" name="target" value="whisper" />
+      <h3>Whisper / ASR</h3>
+      <p>Utilizado no pipeline de transcrição.</p>
+      <label>
+        Chave API
+        <input
+          type="password"
+          name="whisper_api_key"
+          value="{{ whisper.api_key }}"
+          placeholder="sk-live..."
+          autocomplete="off"
+        />
+      </label>
+      <label>
+        Modelo
+        <select name="whisper_model">
+          {% for model in whisper_models %}
+          <option value="{{ model }}" {% if model == whisper.model %}selected{% endif %}>{{ model }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <small class="settings-meta" data-updated-label="whisper"></small>
+      <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar Whisper</button>
+    </form>
+
+    <form
+      method="post"
+      class="card settings-card"
+      data-loading-surface="api-settings"
+      data-ajax="true"
+      data-success-message="Credenciais ChatGPT atualizadas."
+      data-error-message="Não foi possível salvar ChatGPT."
+      data-updated-target="chatgpt"
+  >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
+      <input type="hidden" name="target" value="chatgpt" />
+      <h3>ChatGPT / Pós-edição</h3>
+      <p>Responsável por ajustes e formatação da transcrição.</p>
+      <label>
+        Chave API
+        <input
+          type="password"
+          name="chatgpt_api_key"
+          value="{{ chatgpt.api_key }}"
+          placeholder="sk-live..."
+          autocomplete="off"
+        />
+      </label>
+      <label>
+        Modelo
+        <select name="chatgpt_model">
+          {% for model in chatgpt_models %}
+          <option value="{{ model }}" {% if model == chatgpt.model %}selected{% endif %}>{{ model }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <small class="settings-meta" data-updated-label="chatgpt"></small>
+      <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar ChatGPT</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="template-settings" data-surface="template-settings">
+  <header class="section-header">
+    <div>
+      <h2>Templates de entrega</h2>
+      <p>Defina formatos específicos por cliente/perfil para aplicar nos artefatos TXT.</p>
+    </div>
+    {% if flash_message %}
+    <div
+      class="flash flash-{{ flash_message.variant }}"
+      data-toast="true"
+      data-toast-variant="{{ flash_message.variant }}"
+      role="status"
+    >
+      {{ flash_message.text }}
+    </div>
+    {% endif %}
+  </header>
+
+  <div class="card">
+    <h3>Templates cadastrados</h3>
+    {% if templates %}
+    <table class="template-table" aria-label="Templates configurados">
+      <caption class="sr-only">Lista de templates disponíveis</caption>
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Nome</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Locale</th>
+          <th scope="col">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for template in templates %}
+        <tr data-template-row="{{ template.id }}">
+          <td><code>{{ template.id }}</code></td>
+          <td>{{ template.name }}</td>
+          <td>{{ template.description or "Sem descrição." }}</td>
+          <td>{{ template.locale or "default" }}</td>
+          <td>
+            <button
+              type="button"
+              class="btn btn-tertiary"
+              data-template-edit="{{ template.id }}"
+              data-template-name="{{ template.name }}"
+              data-template-description="{{ template.description }}"
+              data-template-locale="{{ template.locale }}"
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              class="btn btn-ghost"
+              data-template-delete="{{ template.id }}"
+            >
+              Remover
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted">Nenhum template encontrado. Adicione abaixo.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Novo template</h3>
+    <form
+      method="post"
+      action="/settings/templates"
+      data-ajax="true"
+      data-loading-surface="template-settings"
+      data-success-message="Template criado com sucesso."
+      data-error-message="Não foi possível criar o template."
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
+      <label>
+        ID (sem espaços)
+        <input type="text" name="template_id" required pattern="[a-z0-9_-]+" />
+      </label>
+      <label>
+        Nome amigável
+        <input type="text" name="name" placeholder="Ex.: Cliente XPTO" />
+      </label>
+      <label>
+        Descrição
+        <input type="text" name="description" placeholder="Resumo do formato" />
+      </label>
+      <label>
+        Locale (opcional)
+        <input type="text" name="locale" placeholder="Ex.: en-US" />
+      </label>
+      <label>
+        Corpo do template
+        <textarea
+          name="body"
+          rows="6"
+          placeholder="Use {{header}} e {{transcript}} para inserir o conteúdo."
+          required
+        ></textarea>
+      </label>
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" data-template-preview="create">Pré-visualizar</button>
+        <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar template</button>
+      </div>
+      <pre class="template-preview" data-template-preview-output="create"></pre>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Histórico de alterações</h3>
+    {% if template_audit %}
+    <ul class="audit-list">
+      {% for entry in template_audit %}
+      <li>
+        <strong>{{ entry.action | upper }}</strong>
+        <span>template {{ entry.template_id }}</span>
+        <small>{{ entry.timestamp }}</small>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-muted">Sem registros recentes.</p>
+    {% endif %}
+  </div>
+</section>
+
+<dialog id="template-edit-modal" class="modal" aria-labelledby="template-edit-title">
+  <form method="dialog" class="modal-form" data-template-edit-form>
+    <header class="modal-header">
+      <h3 id="template-edit-title">Editar template</h3>
+      <button type="button" class="modal-close" data-dismiss-modal>&times;</button>
+    </header>
+    <div class="modal-body">
+      <input type="hidden" name="template_id" />
+      <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
+      <label>
+        Nome
+        <input type="text" name="name" />
+      </label>
+      <label>
+        Descrição
+        <input type="text" name="description" />
+      </label>
+      <label>
+        Locale
+        <input type="text" name="locale" placeholder="Ex.: en-US" />
+      </label>
+      <label>
+        Corpo do template
+        <textarea name="body" rows="6" required></textarea>
+      </label>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-template-preview="edit">Pré-visualizar</button>
+      <button type="submit" class="btn btn-primary">Salvar alterações</button>
+      <button type="button" class="btn btn-secondary" data-dismiss-modal>Cancelar</button>
+    </footer>
+    <pre class="template-preview" data-template-preview-output="edit"></pre>
+  </form>
+</dialog>
+{% endblock %}

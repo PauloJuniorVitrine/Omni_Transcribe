@@ -1,0 +1,6 @@
+---
+id: briefing
+name: Briefing Curto
+description: Remove cabeçalho e mantém apenas o texto editado.
+---
+{{transcript}}

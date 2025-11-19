@@ -1,0 +1,7 @@
+{
+  "dashboard.live_summary": true,
+  "dashboard.live_incidents": true,
+  "jobs.manual_reprocess": true,
+  "ui.api_settings": true,
+  "downloads.signature_required": true
+}

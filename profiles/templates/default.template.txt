@@ -1,0 +1,8 @@
+---
+id: default
+name: Formato Padrão
+description: Estrutura genérica com cabeçalho e corpo.
+---
+{{header}}
+
+{{transcript}}

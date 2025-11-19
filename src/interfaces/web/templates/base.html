@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>TranscribeFlow</title>
+    <meta name="csrf-token" content="{{ csrf_token | default('', true) }}" />
+    <link rel="stylesheet" href="/static/theme.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <header>
+      {% include "components/branding.html" %}
+      <nav class="main-nav">
+        <a href="/">Jobs</a>
+        <a href="/ui/theme-preview">Tema</a>
+        <a href="/settings/api">Configurações</a>
+        <a href="/settings/templates">Templates</a>
+      </nav>
+      <div class="session-indicator">
+        {% if header_session %}
+        <span class="session-avatar">{{ header_session.initials }}</span>
+        <div class="session-meta">
+          <strong>{{ header_session.label }}</strong>
+          <small>{{ header_session.caption }}</small>
+        </div>
+        {% else %}
+        <a href="/auth/login/browser" class="btn btn-tertiary">Entrar</a>
+        {% endif %}
+      </div>
+    </header>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <div
+      class="modal"
+      id="artifact-modal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="artifact-modal-title"
+    >
+      <div class="modal-backdrop" data-dismiss-modal></div>
+      <div class="modal-dialog" tabindex="-1">
+        <header class="modal-header">
+          <h3 id="artifact-modal-title" data-modal-title>Pré-visualização</h3>
+          <button type="button" class="modal-close" data-dismiss-modal aria-label="Fechar pré-visualização">
+            &times;
+          </button>
+        </header>
+        <div class="modal-body">
+          <pre data-modal-content>Selecione um artefato para visualizar.</pre>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

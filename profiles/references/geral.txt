@@ -1,0 +1,7 @@
+﻿# Transcrição aprovada (pt-BR)
+
+Este é um exemplo de transcrição validada para o perfil geral. Use indicadores claros de pausa, pontuação completa e substitua *???* por marcações [inaudível] com timestamps.
+
+- Use frases completas.
+- Inclua nomes próprios com capitalização.
+- Adicione notas quando o áudio possuir ruídos.
