@@ -2,19 +2,19 @@ param(
     [switch]$Gpu
 )
 
-Write-Host "Updating pip..."
+Write-Host "Atualizando pip..."
 python -m pip install --upgrade pip wheel
 
 if ($Gpu.IsPresent) {
-    Write-Host "Installing GPU-accelerated PyTorch (cu118)..."
+    Write-Host "Instalando PyTorch com suporte GPU (cu118)..."
     pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 }
 else {
-    Write-Host "Installing CPU-only PyTorch..."
+    Write-Host "Instalando PyTorch CPU..."
     pip install torch torchvision torchaudio
 }
 
-Write-Host "Installing project dependencies..."
+Write-Host "Instalando dependências do projeto..."
 pip install -r requirements.txt
 
-Write-Host "Local Whisper environment is ready. Set ASR_ENGINE=local before starting the service."
+Write-Host "Ambiente local mais robusto para 'faster-whisper' pronto. Inicie o serviço com ASR_ENGINE=local."

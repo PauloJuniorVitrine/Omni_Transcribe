@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Ensure pip and wheel are available before installing heavy dependencies
+if ! command -v python &> /dev/null; then
+  echo "Python não está disponível no PATH." >&2
+  exit 1
+fi
+
 python -m pip install --upgrade pip wheel
 
-# Optional GPU support: set WHISPER_GPU=1 and optionally TORCH_CUDA_ARCH_LIST before running the script.
 if [ "${WHISPER_GPU:-0}" != "0" ]; then
-  echo "Installing GPU-accelerated PyTorch (cu118)..."
+  echo "Instalando PyTorch com suporte GPU (cu118)..."
   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 else
-  echo "Installing CPU-only PyTorch..."
+  echo "Instalando PyTorch CPU..."
   pip install torch torchvision torchaudio
 fi
 
-echo "Installing project dependencies..."
+echo "Instalando dependências do projeto..."
 pip install -r requirements.txt
 
-echo "Local Whisper environment is ready. Set ASR_ENGINE=local before starting the service."
+echo "Ambiente local do Whisper configurado. Use ASR_ENGINE=local ao iniciar o serviço."
