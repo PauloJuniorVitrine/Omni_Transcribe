@@ -29,6 +29,7 @@ class ProcessJobPipeline:
         log_repository: LogRepository,
         retry_handler: Optional[RetryOrRejectJob] = None,
         accuracy_guard: Optional[AccuracyGuard] = None,
+        allow_retry: bool = False,
     ) -> None:
         self.asr_use_case = asr_use_case
         self.post_edit_use_case = post_edit_use_case
@@ -36,6 +37,7 @@ class ProcessJobPipeline:
         self.log_repository = log_repository
         self.retry_handler = retry_handler
         self.accuracy_guard = accuracy_guard
+        self.allow_retry = allow_retry
 
     def execute(self, job_id: str) -> List[Artifact]:
         transcription: Optional[TranscriptionResult] = None
@@ -68,5 +70,4 @@ class ProcessJobPipeline:
             raise
 
     def _should_retry(self, exc: Exception, stage: str) -> bool:
-        """Permit reencaminhar jobs por padrão; customize quando houver falha irreversível."""
-        return True
+        return bool(self.allow_retry)
