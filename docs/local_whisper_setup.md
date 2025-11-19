@@ -26,6 +26,10 @@ Para usar a melhor versão local do Whisper (`ASR_ENGINE=local`), siga estes pas
 
 4. **Diretório src no sys.path (PyInstaller)**  
    O `scripts/run_job.py` já ajusta `sys.path` para garantir que o `src/` seja encontrado dentro do `.exe`.
+   Quando você rebuildar manualmente, use:
+   ```bash
+   pyinstaller src/interfaces/cli/run_job.py --name TranscribeFlow --onefile --noconfirm --paths src
+   ```
 
 5. **Execute testes ou o watcher**  
    ```bash

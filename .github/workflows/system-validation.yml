@@ -117,7 +117,7 @@ jobs:
           python -m pip install pyinstaller
       - name: Build installer executable
         run: |
-          pyinstaller src\interfaces\cli\run_job.py --name TranscribeFlow --onefile --noconfirm
+          pyinstaller src\interfaces\cli\run_job.py --name TranscribeFlow --onefile --noconfirm --paths src
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
