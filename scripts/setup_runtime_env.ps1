@@ -14,10 +14,7 @@ $runtimeSecret = Get-RuntimeSecret -EnvValue $env:CREDENTIALS_SECRET_KEY -Provid
 
 if (-not $runtimeSecret) {
     Write-Host "Gerando nova chave CREDENTIALS_SECRET_KEY..." -ForegroundColor Yellow
-    $runtimeSecret = python - <<'PY'
-import secrets, base64
-print(base64.urlsafe_b64encode(secrets.token_bytes(24)).decode('utf-8'))
-PY
+    $runtimeSecret = python -c "import secrets, base64; print(base64.urlsafe_b64encode(secrets.token_bytes(24)).decode('utf-8'))"
 }
 
 $env:CREDENTIALS_SECRET_KEY = $runtimeSecret

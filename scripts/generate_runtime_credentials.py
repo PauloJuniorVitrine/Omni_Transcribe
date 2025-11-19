@@ -5,6 +5,14 @@ import argparse
 import os
 import sys
 import textwrap
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+SRC_DIR = ROOT_DIR / "src"
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from config.runtime_credentials import DEFAULT_CREDENTIALS, RuntimeCredentialStore
 
@@ -22,7 +30,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def create_runtime_store(output_path: str) -> RuntimeCredentialStore:
-    return RuntimeCredentialStore(path=output_path)
+    from pathlib import Path
+
+    path = Path(output_path)
+    return RuntimeCredentialStore(path=path)
 
 
 def main() -> None:
@@ -37,9 +48,9 @@ def main() -> None:
     print(
         textwrap.dedent(
             f"""
-            ✅ Cofre de credenciais gerado: {store.path}
-            🔐 Usando chave (6 primeiros chars): {secret[:6]}
-            ⚠️ Não compartilhe essa chave; mantenha o arquivo fora do git ou regenere quando trocar a chave.
+            Cofre de credenciais gerado: {store.path}
+            Usando chave (6 primeiros chars): {secret[:6]}
+            Não compartilhe essa chave; mantenha o arquivo fora do git ou regenere quando trocar a chave.
             """
         ).strip()
     )
