@@ -37,3 +37,10 @@ Para usar a melhor versão local do Whisper (`ASR_ENGINE=local`), siga estes pas
    python -m src.interfaces.cli.watch_inbox
    ```
    O container reutiliza o mesmo pipeline com o `TranscriptionAccuracyGuard`.
+
+6. **Lembrete para o instalador**  
+   Quando reconstruir o instalador (PyInstaller), use o script wrapper para garantir que o `CREDENTIALS_SECRET_KEY` esteja definido:
+   ```bash
+   pyinstaller src/interfaces/cli/run_job.py --name TranscribeFlow --onefile --noconfirm --paths src
+   ```
+   Depois, rode `scripts/run_transcribeflow.bat` ou `scripts/run_transcribeflow.ps1` para iniciar o `.exe`.
