@@ -23,5 +23,15 @@ Os testes unitários e o workflow dependem de `config/runtime_credentials.json` 
 4. **Executando o instalador com segurança**
    Use os wrappers `scripts/run_transcribeflow.bat` (Windows) ou `scripts/run_transcribeflow.ps1` para garantir que a variável esteja definida antes de iniciar `TranscribeFlow.exe`. Eles validam o segredo e exibem um aviso amigável se faltar.
 
-5. **Testes automatizados**
+5. **Ambiente rapidamente configurado**
+   O script `scripts/setup_runtime_env.ps1` ajuda durante o desenvolvimento Windows:
+   ```powershell
+   .\scripts\setup_runtime_env.ps1
+   ```
+   Ele:
+   - reutiliza `CREDENTIALS_SECRET_KEY` se estiver definida ou gera uma nova;
+   - executa `scripts/generate_runtime_credentials.py` para atualizar o cofre;
+   - roda `pytest tests/unit -q` com o ambiente já pronto.
+
+6. **Testes automatizados**
    Há um teste que valida o script de geração de credenciais: `pytest tests/unit/scripts/test_generate_runtime_credentials.py`. Ele garante que o arquivo é criado com a chave adequada e que a execução falha quando o segredo não existe.
