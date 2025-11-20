@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import os
+import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -48,6 +49,9 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for stub envs
             self._locked = False
 
 
+SECRET_CACHE_FILE = ".credentials_secret.key"
+
+
 DEFAULT_CREDENTIALS: Dict[str, Dict[str, str]] = {
     "whisper": {"api_key": "", "model": "gpt-4o-mini-transcribe"},
     "chatgpt": {"api_key": "", "model": "gpt-4.1-mini"},
@@ -58,12 +62,16 @@ DEFAULT_CREDENTIALS: Dict[str, Dict[str, str]] = {
 class RuntimeCredentialStore:
     path: Path = field(default_factory=lambda: Path("config/runtime_credentials.json"))
     audit_path: Path = field(default_factory=lambda: Path("config/runtime_credentials_audit.log"))
+    _secret_path: Path = field(init=False)
 
     def __post_init__(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.audit_path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.path) + ".lock")
+        self._secret_path = self.path.parent / SECRET_CACHE_FILE
         secret = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
+        if not secret:
+            secret = self._load_or_create_secret()
         self._cipher = self._build_cipher(secret)
         if not self._cipher:
             raise RuntimeError(
@@ -169,6 +177,21 @@ class RuntimeCredentialStore:
         }
         with self.lock:
             self.path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def _load_or_create_secret(self) -> str:
+        if self._secret_path.exists():
+            try:
+                cached = self._secret_path.read_text(encoding="utf-8").strip()
+            except OSError:
+                cached = ""
+            if cached:
+                return cached
+        secret = secrets.token_urlsafe(32)
+        try:
+            self._secret_path.write_text(secret, encoding="utf-8")
+        except OSError:
+            pass
+        return secret
 
     def _append_audit_entry(self, action: str, metadata: Dict[str, Any]) -> None:
         entry = {
