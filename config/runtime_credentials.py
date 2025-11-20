@@ -7,7 +7,7 @@ import secrets
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 try:
     from cryptography.fernet import Fernet, InvalidToken
@@ -71,13 +71,20 @@ class RuntimeCredentialStore:
         self._secret_path = self.path.parent / SECRET_CACHE_FILE
         secret = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
         if not secret:
-            secret = self._load_or_create_secret()
+            secret, cached = self._load_or_create_secret()
+            self._secret_loaded_from_cache = cached
+        else:
+            self._secret_loaded_from_cache = False
         self._cipher = self._build_cipher(secret)
         if not self._cipher:
             raise RuntimeError(
                 "CREDENTIALS_SECRET_KEY precisa ser definido para usar o cofre de credenciais."
             )
-        if not self.path.exists():
+        skip_verify = bool(os.environ.get("SKIP_RUNTIME_CREDENTIALS_VERIFY"))
+        if self.path.exists():
+            if not skip_verify:
+                self.read()
+        else:
             self._write(DEFAULT_CREDENTIALS)
             self._append_audit_entry("bootstrap", {})
 
@@ -102,8 +109,11 @@ class RuntimeCredentialStore:
             payload = data.get("payload", "")
             try:
                 decrypted = self._cipher.decrypt(payload.encode("utf-8"))
-            except InvalidToken as exc:
-                raise RuntimeError("Não foi possível descriptografar as credenciais.") from exc
+            except InvalidToken:
+                if not getattr(self, "_secret_loaded_from_cache", False):
+                    raise RuntimeError("N�o foi poss�vel descriptografar as credenciais.")
+                self._reset_credentials()
+                return json.loads(json.dumps(DEFAULT_CREDENTIALS))
             return json.loads(decrypted.decode("utf-8"))
 
         if isinstance(data, dict):
@@ -178,20 +188,51 @@ class RuntimeCredentialStore:
         with self.lock:
             self.path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    def _load_or_create_secret(self) -> str:
-        if self._secret_path.exists():
+    def _load_or_create_secret(self, force_new: bool = False) -> Tuple[str, bool]:
+        if not force_new and self._secret_path.exists():
             try:
                 cached = self._secret_path.read_text(encoding="utf-8").strip()
             except OSError:
                 cached = ""
             if cached:
-                return cached
-        secret = secrets.token_urlsafe(32)
+                return cached, True
+        secret = self._generate_secret()
         try:
             self._secret_path.write_text(secret, encoding="utf-8")
         except OSError:
             pass
-        return secret
+        return secret, False
+
+    def _generate_secret(self) -> str:
+        key = None
+        try:
+            key = Fernet.generate_key()
+        except Exception:
+            pass
+        if key:
+            return key.decode("utf-8")
+        fallback = base64.urlsafe_b64encode(os.urandom(32))
+        return fallback.decode("utf-8")
+
+    def _reset_credentials(self) -> None:
+        if self.path.exists():
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+        if self._secret_path.exists():
+            try:
+                self._secret_path.unlink()
+            except OSError:
+                pass
+        secret, _ = self._load_or_create_secret(force_new=True)
+        self._cipher = self._build_cipher(secret)
+        if not self._cipher:
+            raise RuntimeError(
+                "CREDENTIALS_SECRET_KEY precisa ser definido para usar o cofre de credenciais."
+            )
+        self._write(DEFAULT_CREDENTIALS)
+        self._secret_loaded_from_cache = False
 
     def _append_audit_entry(self, action: str, metadata: Dict[str, Any]) -> None:
         entry = {

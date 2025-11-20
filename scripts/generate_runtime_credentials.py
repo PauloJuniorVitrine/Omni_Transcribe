@@ -7,6 +7,8 @@ import sys
 import textwrap
 from pathlib import Path
 
+os.environ.setdefault("SKIP_RUNTIME_CREDENTIALS_VERIFY", "1")
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SRC_DIR = ROOT_DIR / "src"
 if str(ROOT_DIR) not in sys.path:
