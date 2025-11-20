@@ -4,17 +4,19 @@ Param(
 )
 
 function Import-EnvFile {
-    param($Path)
+    param([string]$Path)
     if (-not (Test-Path $Path)) { return @{} }
     $values = @{}
-    foreach ($line in Get-Content $Path | Where-Object { ($_ -and -not $_.StartsWith('#')) -and ($_.Trim() -ne '') }) {
+    Get-Content $Path | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) { return }
         $parts = $line -split '=', 2
         if ($parts.Count -eq 2) {
             $key = $parts[0].Trim()
             $value = $parts[1].Trim()
             $value = $value.Trim("'")
             $value = $value.Trim('"')
-            $values[$key] = $value
+            if ($key) { $values[$key] = $value }
         }
     }
     return $values
@@ -22,9 +24,15 @@ function Import-EnvFile {
 
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $envFilePath = $null
-$candidateFiles = @(Join-Path $scriptDirectory 'install.local.env') + @(Join-Path $scriptDirectory 'install.env')
+$candidateFiles = @(
+    Join-Path $scriptDirectory 'install.local.env'
+)
+$candidateFiles += Join-Path $scriptDirectory 'install.env'
 foreach ($candidate in $candidateFiles) {
-    if (Test-Path $candidate) { $envFilePath = $candidate; break }
+    if (Test-Path $candidate) {
+        $envFilePath = $candidate
+        break
+    }
 }
 
 if (-not $envFilePath) {
@@ -44,15 +52,22 @@ if (-not $envVars['OPENAI_API_KEY'] -or -not $envVars['CREDENTIALS_SECRET_KEY'])
 
 $env:OPENAI_API_KEY = $envVars['OPENAI_API_KEY']
 $env:CREDENTIALS_SECRET_KEY = $envVars['CREDENTIALS_SECRET_KEY']
-if ($envVars['RUNTIME_CREDENTIALS_KEY']) { $env:RUNTIME_CREDENTIALS_KEY = $envVars['RUNTIME_CREDENTIALS_KEY'] }
+if ($envVars['RUNTIME_CREDENTIALS_KEY']) {
+    $env:RUNTIME_CREDENTIALS_KEY = $envVars['RUNTIME_CREDENTIALS_KEY']
+}
 
 $runScript = Join-Path $scriptDirectory 'run_with_gui.ps1'
-if (-not (Test-Path $runScript)) { Write-Error 'run_with_gui.ps1 not found'; exit 1 }
+if (-not (Test-Path $runScript)) {
+    Write-Error 'run_with_gui.ps1 not found'
+    exit 1
+}
 
-$installerDirectory = Join-Path $scriptDirectory '..\..\Downloads\transcribeflow-installer'
-$installerDirectory = Resolve-Path $installerDirectory -ErrorAction SilentlyContinue
-if (-not $installerDirectory) { Write-Error 'Installer directory not found. Expected ..\..\Downloads\transcribeflow-installer'; exit 1 }
-$installerDirectory = $installerDirectory.Path
+$installerDir = Resolve-Path (Join-Path $scriptDirectory '..\..\Downloads\transcribeflow-installer') -ErrorAction SilentlyContinue
+if (-not $installerDir) {
+    Write-Error 'Installer directory not found. Copy TranscribeFlow.exe into Downloads\transcribeflow-installer'
+    exit 1
+}
+$installerDir = $installerDir.Path
 
 $logFile = Join-Path $scriptDirectory 'installer_test.log'
 Remove-Item $logFile -ErrorAction SilentlyContinue
