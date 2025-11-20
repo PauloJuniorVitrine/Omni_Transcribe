@@ -23,6 +23,7 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $installerDir = Join-Path $scriptRoot "..\..\Downloads\transcribeflow-installer"
 $installerDir = (Resolve-Path $installerDir).Path
 $envFileCandidates = @(
+    Join-Path $scriptRoot "install.local.env",
     Join-Path $scriptRoot "install.env",
     Join-Path $scriptRoot ".env",
     Join-Path $scriptRoot "..\.env"
