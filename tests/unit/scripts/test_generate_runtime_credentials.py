@@ -17,6 +17,7 @@ def _call_generator(output: Path, env: dict[str, str]) -> subprocess.CompletedPr
 
 
 def test_generator_creates_encrypted_file(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("TEST_MODE", "0")
     secret = "A" * 32
     env = os.environ.copy()
     env["CREDENTIALS_SECRET_KEY"] = secret

@@ -65,11 +65,19 @@ class RuntimeCredentialStore:
     _secret_path: Path = field(init=False)
 
     def __post_init__(self) -> None:
+        test_mode = os.getenv("TEST_MODE") in {"1", "true", "True"} or os.getenv("OMNI_TEST_MODE") in {"1", "true", "True"}
+        secret_env = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
+        if test_mode and not secret_env:
+            # Skip all disk/crypto operations in test mode when no secret is available.
+            self._cipher = None
+            self._secret_loaded_from_cache = False
+            self._memory_store = json.loads(json.dumps(DEFAULT_CREDENTIALS))
+            return
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.audit_path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.path) + ".lock")
         self._secret_path = self.path.parent / SECRET_CACHE_FILE
-        secret = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
+        secret = secret_env
         if not secret:
             secret, cached = self._load_or_create_secret()
             self._secret_loaded_from_cache = cached
@@ -89,6 +97,8 @@ class RuntimeCredentialStore:
             self._append_audit_entry("bootstrap", {})
 
     def read(self) -> Dict[str, Dict[str, str]]:
+        if hasattr(self, "_memory_store"):
+            return json.loads(json.dumps(self._memory_store))
         with self.lock:
             if not self.path.exists():
                 return json.loads(json.dumps(DEFAULT_CREDENTIALS))
@@ -123,6 +133,12 @@ class RuntimeCredentialStore:
         return json.loads(json.dumps(DEFAULT_CREDENTIALS))
 
     def save(self, payload: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
+        if hasattr(self, "_memory_store"):
+            self._memory_store = {
+                "whisper": {**DEFAULT_CREDENTIALS["whisper"], **payload.get("whisper", {})},
+                "chatgpt": {**DEFAULT_CREDENTIALS["chatgpt"], **payload.get("chatgpt", {})},
+            }
+            return json.loads(json.dumps(self._memory_store))
         data = {
             "whisper": {**DEFAULT_CREDENTIALS["whisper"], **payload.get("whisper", {})},
             "chatgpt": {**DEFAULT_CREDENTIALS["chatgpt"], **payload.get("chatgpt", {})},
@@ -147,16 +163,19 @@ class RuntimeCredentialStore:
             data["chatgpt"]["api_key"] = chatgpt_api_key.strip()
         if chatgpt_model is not None:
             data["chatgpt"]["model"] = chatgpt_model.strip()
-        self._write(data)
-        self._append_audit_entry(
-            "update",
-            {
-                "whisper_api_key": bool(whisper_api_key),
-                "whisper_model": bool(whisper_model),
-                "chatgpt_api_key": bool(chatgpt_api_key),
-                "chatgpt_model": bool(chatgpt_model),
-            },
-        )
+        if hasattr(self, "_memory_store"):
+            self._memory_store = data
+        else:
+            self._write(data)
+            self._append_audit_entry(
+                "update",
+                {
+                    "whisper_api_key": bool(whisper_api_key),
+                    "whisper_model": bool(whisper_model),
+                    "chatgpt_api_key": bool(chatgpt_api_key),
+                    "chatgpt_model": bool(chatgpt_model),
+                },
+            )
         return data
 
     def _build_cipher(self, secret: Optional[str]) -> Optional[Fernet]:

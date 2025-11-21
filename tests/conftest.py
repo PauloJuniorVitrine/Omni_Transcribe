@@ -3,10 +3,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 import types
+import os
 
 
 def pytest_configure() -> None:
     """Ensure src/ is available on PYTHONPATH for absolute imports."""
+    os.environ.setdefault("TEST_MODE", "1")
     root = Path(__file__).resolve().parents[1]
     src = root / "src"
     for path in (str(root), str(src)):

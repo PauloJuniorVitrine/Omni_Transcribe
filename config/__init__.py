@@ -1,5 +1,6 @@
 """Global configuration helpers for TranscribeFlow."""
 
+import os
 from functools import lru_cache
 from typing import Dict, Any
 
@@ -7,15 +8,22 @@ from .runtime_credentials import RuntimeCredentialStore, DEFAULT_CREDENTIALS
 from .settings import Settings
 from .feature_flags import FeatureFlagProvider
 
-_runtime_store = RuntimeCredentialStore()
+_runtime_store: RuntimeCredentialStore | None = None
 _feature_flags = FeatureFlagProvider()
+
+
+def _build_runtime_store() -> RuntimeCredentialStore:
+    # Test-mode short-circuit to avoid decrypting credentials during import/collection.
+    # Controlled via TEST_MODE/OMNI_TEST_MODE so CI/pytest can run without secrets.
+    return RuntimeCredentialStore()
 
 
 @lru_cache
 def get_settings() -> Settings:
     """Return cached settings instance (loads from environment/.env)."""
     settings = Settings()
-    credentials = _runtime_store.read()
+    store = get_runtime_store()
+    credentials = store.read()
     _apply_runtime_overrides(settings, credentials)
     return settings
 
@@ -28,6 +36,9 @@ def reload_settings() -> None:
 
 
 def get_runtime_store() -> RuntimeCredentialStore:
+    global _runtime_store
+    if _runtime_store is None:
+        _runtime_store = _build_runtime_store()
     return _runtime_store
 
 

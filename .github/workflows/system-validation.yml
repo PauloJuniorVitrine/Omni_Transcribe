@@ -15,6 +15,7 @@ env:
   CREDENTIALS_SECRET_KEY: "${{ secrets.CREDENTIALS_SECRET_KEY || 'test-credentials-key-32-bytes__' }}"
   RUNTIME_CREDENTIALS_KEY: "${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}"
   PLAYWRIGHT_BROWSERS_PATH: 0
+  TEST_MODE: "1"
 
 jobs:
   tests_unit:

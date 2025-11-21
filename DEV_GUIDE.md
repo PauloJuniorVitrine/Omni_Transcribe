@@ -14,6 +14,11 @@
 - Watcher de audios: `python scripts/watch_inbox.py`
 - CLI manual: `python -m interfaces.cli.run_job --file inbox/sample.wav --profile geral`
 
+## Credenciais e TEST_MODE
+- Em producao: `RuntimeCredentialStore` exige `CREDENTIALS_SECRET_KEY`/`RUNTIME_CREDENTIALS_KEY` e descriptografa `config/runtime_credentials.json`.
+- Em testes/CI: `TEST_MODE=1` (setado em `tests/conftest.py` e nos workflows) evita tocar no cofre e usa credenciais em memoria. Se um teste precisar do fluxo real, defina `TEST_MODE=0` no escopo do teste.
+- Nao comitar `config/runtime_credentials.json` real nem chaves; use `scripts/install.env.example` como referencia.
+
 ## Variaveis importantes
 - `CREDENTIALS_SECRET_KEY` (obrigatoria para runtime_credentials)
 - `OPENAI_API_KEY` (usada por Whisper/ChatGPT)

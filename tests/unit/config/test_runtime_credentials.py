@@ -12,6 +12,7 @@ def _generate_secret() -> str:
 
 
 def test_store_encrypts_payload_and_logs_audit(tmp_path, monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
     secret = _generate_secret()
     monkeypatch.setenv("CREDENTIALS_SECRET_KEY", secret)
     creds_path = tmp_path / "creds.json"
@@ -33,6 +34,7 @@ def test_store_encrypts_payload_and_logs_audit(tmp_path, monkeypatch):
 
 
 def test_encrypted_payload_requires_secret(tmp_path, monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
     secret = _generate_secret()
     monkeypatch.setenv("CREDENTIALS_SECRET_KEY", secret)
     creds_path = tmp_path / "creds.json"
