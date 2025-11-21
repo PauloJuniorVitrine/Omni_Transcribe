@@ -55,5 +55,5 @@ class OpenAIChatHttpClient(ChatModelClient):
         body = response.json()
         choices: List[Dict[str, Any]] = body.get("choices", [])
         if not choices:
-            raise RuntimeError("Resposta da API OpenAI não contém choices.")
+            raise RuntimeError("Resposta da API OpenAI nao contem choices.")
         return choices[0]["message"]["content"]

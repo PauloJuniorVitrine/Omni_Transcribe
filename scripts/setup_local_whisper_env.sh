@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if ! command -v python &> /dev/null; then
-  echo "Python não está disponível no PATH." >&2
+  echo "Python nao esta disponivel no PATH." >&2
   exit 1
 fi
 
@@ -16,7 +16,7 @@ else
   pip install torch torchvision torchaudio
 fi
 
-echo "Instalando dependências do projeto..."
+echo "Instalando dependencias do projeto..."
 pip install -r requirements.txt
 
-echo "Ambiente local do Whisper configurado. Use ASR_ENGINE=local ao iniciar o serviço."
+echo "Ambiente local do Whisper configurado. Use ASR_ENGINE=local ao iniciar o servico."

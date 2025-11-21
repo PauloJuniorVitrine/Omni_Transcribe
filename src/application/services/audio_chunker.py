@@ -27,7 +27,7 @@ class AudioChunker:
 
     def split(self, file_path: Path) -> List[AudioChunk]:
         if AudioSegment is None:
-            raise RuntimeError("pydub é necessário para executar o chunking de áudio.")
+            raise RuntimeError("pydub e necessario para executar o chunking de audio.")
         audio = AudioSegment.from_file(file_path)
         chunks: List[AudioChunk] = []
         for start_ms in range(0, len(audio), self.chunk_duration_ms):

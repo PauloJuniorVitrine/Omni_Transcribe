@@ -37,7 +37,7 @@ class RetryOrRejectJob:
     def execute(self, decision: RetryDecision) -> Job:
         job = self.job_repository.find_by_id(decision.job_id)
         if not job:
-            raise ValueError(f"Job {decision.job_id} não encontrado")
+            raise ValueError(f"Job {decision.job_id} nao encontrado")
 
         if decision.retryable:
             job.bump_version()

@@ -52,7 +52,7 @@ def main() -> None:
             f"""
             Cofre de credenciais gerado: {store.path}
             Usando chave (6 primeiros chars): {secret[:6]}
-            Não compartilhe essa chave; mantenha o arquivo fora do git ou regenere quando trocar a chave.
+            Nao compartilhe essa chave; mantenha o arquivo fora do git ou regenere quando trocar a chave.
             """
         ).strip()
     )

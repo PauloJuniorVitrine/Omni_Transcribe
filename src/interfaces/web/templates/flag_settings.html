@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="flag-view">
+  <div class="section-header">
+    <div>
+      <h2>Feature Flags</h2>
+      <p>Ative ou desative recursos dinamicamente. Alteracoes sao persistidas em config/feature_flags.json.</p>
+    </div>
+    <div>
+      <a href="/" class="btn btn-ghost">Voltar para dashboard</a>
+    </div>
+  </div>
+
+  {% if flash_message %}
+  <div class="flash flash-{{ flash_message.variant }}" data-toast="true" data-toast-variant="{{ flash_message.variant }}">
+    {{ flash_message.text }}
+  </div>
+  {% endif %}
+
+  <form action="/settings/flags" method="post" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    <div class="flag-grid">
+      {% for flag in flags %}
+      <label class="flag-row">
+        <div>
+          <strong>{{ flag.name }}</strong>
+          <small>{{ flag.name }}</small>
+        </div>
+        <input type="checkbox" name="flag_{{ flag.name }}" value="on" {% if flag.enabled %}checked{% endif %} />
+      </label>
+      {% else %}
+      <p>Nenhuma flag configurada.</p>
+      {% endfor %}
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -81,7 +81,7 @@ class DeliveryTemplateRegistry:
 
     def _load_template(self, path: Path) -> DeliveryTemplate:
         if not path.exists():
-            raise FileNotFoundError(f"Template não encontrado: {path}")
+            raise FileNotFoundError(f"Template nao encontrado: {path}")
         raw = path.read_text(encoding="utf-8")
         metadata, body = self._split_front_matter(raw)
         template_id = metadata.get("id") or path.stem.replace(".template", "")

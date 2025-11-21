@@ -17,7 +17,7 @@ class JobLogQueryResult:
 
 
 class JobLogService:
-    """Encapsula consulta e paginação de logs por job."""
+    """Encapsula consulta e paginacao de logs por job."""
 
     def __init__(self, log_repository) -> None:
         self._log_repository = log_repository

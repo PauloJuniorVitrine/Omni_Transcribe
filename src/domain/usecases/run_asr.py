@@ -27,7 +27,7 @@ class RunAsrPipeline:
     def execute(self, job_id: str) -> TranscriptionResult:
         job = self.job_repository.find_by_id(job_id)
         if not job:
-            raise ValueError(f"Job {job_id} não encontrado")
+            raise ValueError(f"Job {job_id} nao encontrado")
 
         profile = self.profile_provider.get(job.profile_id)
         task = "translate" if profile.requires_translation() else "transcribe"

@@ -42,7 +42,7 @@ async def callback(
     session_service: SessionService = Depends(get_session_service),
 ):
     if not code:
-        raise HTTPException(status_code=400, detail="Código não fornecido.")
+        raise HTTPException(status_code=400, detail="Codigo nao fornecido.")
     tokens = oauth_service.exchange_code(code)
     session_id = session_service.create_session(tokens, metadata={"state": state})
     logger.info("Callback OAuth recebido", extra={"state": state, "session_id": session_id})

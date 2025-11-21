@@ -27,7 +27,7 @@ class PostEditTranscript:
     def execute(self, job_id: str, transcription: TranscriptionResult) -> PostEditResult:
         job = self.job_repository.find_by_id(job_id)
         if not job:
-            raise ValueError(f"Job {job_id} não encontrado")
+            raise ValueError(f"Job {job_id} nao encontrado")
 
         profile = self.profile_provider.get(job.profile_id)
 
@@ -36,13 +36,13 @@ class PostEditTranscript:
         if self.status_publisher:
             self.status_publisher.publish(job)
         self.log_repository.append(
-            LogEntry(job_id=job.id, event="post_edit_started", level=LogLevel.INFO, message="Post-edição iniciada")
+            LogEntry(job_id=job.id, event="post_edit_started", level=LogLevel.INFO, message="Post-edicao iniciada")
         )
 
         try:
             result = self.post_edit_service.run(job, profile, transcription)
             self.log_repository.append(
-                LogEntry(job_id=job.id, event="post_edit_completed", level=LogLevel.INFO, message="Post-edição concluída")
+                LogEntry(job_id=job.id, event="post_edit_completed", level=LogLevel.INFO, message="Post-edicao concluida")
             )
             return result
         except Exception as exc:

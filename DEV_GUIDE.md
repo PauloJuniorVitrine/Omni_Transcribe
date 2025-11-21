@@ -1,0 +1,37 @@
+# Dev Guide - TranscribeFlow
+
+## Setup rapido
+1. Python 3.11, Node 20
+2. `python -m venv .venv && .\.venv\Scripts\activate` (ou `source .venv/bin/activate`)
+3. `pip install -r requirements.txt`
+4. `npm ci` (para testes frontend)
+5. Gerar cofre se preciso: `CREDENTIALS_SECRET_KEY=<32b_urlsafe> python scripts/generate_runtime_credentials.py`
+
+## Rodando
+- GUI web: `python launcher_gui.py --host 127.0.0.1 --port 8000`
+  - Scripts Windows: `scripts\run_with_gui.ps1` ou `scripts\run_transcribeflow.ps1/.bat`
+- GUI cobre: upload de audio (cria job + opcional processar), dashboard/filtros, incidentes, revisao, download de artefatos (token), flags, templates, credenciais.
+- Watcher de audios: `python scripts/watch_inbox.py`
+- CLI manual: `python -m interfaces.cli.run_job --file inbox/sample.wav --profile geral`
+
+## Variaveis importantes
+- `CREDENTIALS_SECRET_KEY` (obrigatoria para runtime_credentials)
+- `OPENAI_API_KEY` (usada por Whisper/ChatGPT)
+- `RUNTIME_CREDENTIALS_KEY` (compatibilidade com cofre)
+- Pastas: BASE_INPUT_DIR, BASE_OUTPUT_DIR, BASE_PROCESSING_DIR
+
+## Testes
+- Unit/integracao: `pytest`
+- Frontend (Jest): `npm run test:js`
+- E2E (Playwright): `npm run test:e2e` (requer `npx playwright install --with-deps`)
+- Lint JS: `npm run lint:js`
+- Carga leve (sugestao): marque testes com `-m load` caso adicione cenarios de paralelismo de jobs.
+
+## Build opcional (.exe)
+- Exemplo de bundle: `pyinstaller --onefile --name TranscribeFlow launcher_gui.py`
+- Garanta que `launcher_gui.py` inclui bootstrap dos caminhos (`src/`) e que as variaveis de ambiente estao definidas antes de executar o binario.
+
+## Observacoes
+- Armazenamento padrao usa arquivos JSON + filelock em `processing/`.
+- Downloads exigem assinatura HMAC por padrao (flag configurable em feature flags).
+- Evite commitar `config/runtime_credentials.json` ou chaves reais. 

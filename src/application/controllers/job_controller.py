@@ -35,7 +35,7 @@ class JobController:
 
     def process_job(self, job_id: str) -> None:
         if not self.pipeline_use_case:
-            raise RuntimeError("Pipeline ainda não está configurado. Conclua a etapa de artefatos.")
+            raise RuntimeError("Pipeline ainda nao esta configurado. Conclua a etapa de artefatos.")
         self.pipeline_use_case.execute(job_id)
 
     def requeue_job(self, job_id: str, reason: str, retryable: bool = True) -> Job:

@@ -1,6 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="hero">
+  <div class="hero-body">
+    <p class="eyebrow">Console operacional</p>
+    <h1>TranscribeFlow</h1>
+    <p class="lead">
+      Controle em tempo real dos jobs, revisoes e entregas. Ajuste perfis, acompanhe incidentes e otimize a acuracia sem sair desta tela.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="/settings/api">Credenciais</a>
+      <a class="btn btn-secondary" href="/settings/templates">Templates</a>
+      <a class="btn btn-ghost" href="/ui/theme-preview">Tema</a>
+    </div>
+    <div class="hero-meta">
+      <span class="pill">Aguardando: {{ summary.awaiting_review }}</span>
+      <span class="pill pill-muted">Aprovados: {{ summary.approved }}</span>
+      <span class="pill pill-warning">Falhas/Rejeitados: {{ summary.failed }}</span>
+      <span class="pill pill-info">Acuracia avaliada: {{ accuracy_summary.evaluated or 0 }}</span>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-block">
+      <small>Total</small>
+      <strong>{{ summary.total }}</strong>
+    </div>
+    <div class="stat-block">
+      <small>Media score</small>
+      <strong>
+        {% if accuracy_summary.average_score is not none %}
+        {{ (accuracy_summary.average_score * 100) | round(2) }}%
+        {% else %}
+        -
+        {% endif %}
+      </strong>
+    </div>
+    <div class="stat-block">
+      <small>Media WER</small>
+      <strong>
+        {% if accuracy_summary.average_wer is not none %}
+        {{ (accuracy_summary.average_wer * 100) | round(2) }}%
+        {% else %}
+        -
+        {% endif %}
+      </strong>
+    </div>
+  </div>
+</div>
+
 <section class="jobs-view" data-surface="jobs-feed">
   {% if flash_message %}
   <div
@@ -27,7 +74,7 @@
         <strong data-summary-field="total">{{ summary.total }}</strong>
       </div>
       <div class="summary-card">
-        <p>Aguardando revisão</p>
+        <p>Aguardando revisao</p>
         <strong data-summary-field="awaiting_review">{{ summary.awaiting_review }}</strong>
       </div>
       <div class="summary-card">
@@ -39,11 +86,11 @@
         <strong data-summary-field="failed">{{ summary.failed }}</strong>
       </div>
       <div class="summary-card summary-card--accent">
-        <p>Jobs com precisão avaliada</p>
+        <p>Jobs com precisao avaliada</p>
         <strong data-accuracy-field="evaluated">{{ accuracy_summary.evaluated or 0 }}</strong>
       </div>
       <div class="summary-card">
-        <p>Média de score</p>
+        <p>Media de score</p>
         <strong data-accuracy-field="average_score">
           {% if accuracy_summary.average_score is not none %}
           {{ (accuracy_summary.average_score * 100) | round(2) }}%
@@ -53,14 +100,14 @@
         </strong>
         <small data-accuracy-field="average_wer">
           {% if accuracy_summary.average_wer is not none %}
-          WER médio {{ (accuracy_summary.average_wer * 100) | round(2) }}%
+          WER medio {{ (accuracy_summary.average_wer * 100) | round(2) }}%
           {% else %}
-          WER médio N/A
+          WER medio N/A
           {% endif %}
         </small>
       </div>
       <div class="summary-card">
-        <p>Necessitam revisão</p>
+        <p>Necessitam revisao</p>
         <strong data-accuracy-field="needs_review">{{ accuracy_summary.needs_review or 0 }}</strong>
       </div>
     </div>
@@ -74,6 +121,54 @@
       <div class="skeleton-card"></div>
     </div>
   </div>
+
+  <section class="card upload-panel">
+    <div class="section-header">
+      <div>
+        <h2>Enviar audio</h2>
+        <p>Envie um arquivo para criar um job. Opcionalmente, ja dispare o processamento completo.</p>
+      </div>
+      <small class="filters-meta" data-state="info">Tamanho maximo: {{ max_audio_size_mb }} MB</small>
+    </div>
+    <form
+      action="/jobs/upload"
+      method="post"
+      enctype="multipart/form-data"
+      data-loading-surface="jobs-feed"
+      data-updated-label="upload"
+    >
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+      <div class="form-grid">
+        <label>
+          Arquivo de audio
+          <input type="file" name="file" accept=".wav,.mp3,.m4a,.aac,.flac,.ogg" required />
+        </label>
+        <label>
+          Perfil
+          <select name="profile">
+            {% for value in profile_options %}
+            <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          Engine
+          <select name="engine">
+            {% for value in engine_options %}
+            <option value="{{ value }}">{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" name="auto_process" value="true" />
+          <span>Processar automaticamente apos criar</span>
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Enviar e criar job</button>
+      </div>
+    </form>
+  </section>
 
   <div class="skeleton-grid" data-skeleton="jobs-feed" hidden aria-hidden="true">
     <div class="skeleton-card"></div>
@@ -111,13 +206,13 @@
       </select>
     </label>
     <label>
-      Precisão
+      Precisao
       <select name="accuracy">
         <option value="">Todos</option>
         {% for value in accuracy_options %}
         <option value="{{ value }}" {% if value == selected_accuracy %}selected{% endif %}>
           {% if value == "needs_review" %}
-          Requer revisão
+          Requer revisao
           {% else %}
           Dentro da meta
           {% endif %}
@@ -128,14 +223,14 @@
     <button type="submit" class="btn btn-primary">Aplicar filtros</button>
     <a href="/" class="link-reset" data-loading-skeleton="jobs-feed">Limpar</a>
   </form>
-  <small class="filters-meta" data-filters-updated>Atualizado às {{ page_generated_label }}</small>
+  <small class="filters-meta" data-filters-updated>Atualizado as {{ page_generated_label }}</small>
 
   {% if feature_flags["dashboard.live_incidents"] %}
   <section
     class="incident-panel"
     data-live-incidents-endpoint="/api/dashboard/incidents"
     data-refresh-interval="45"
-    data-empty-label="Nenhum incidente crítico."
+    data-empty-label="Nenhum incidente critico."
     data-loading-surface="incident-panel"
     data-surface="incident-panel"
     data-surface="incident-panel"
@@ -143,7 +238,7 @@
     <div class="section-header">
       <div>
         <h2>Incidentes recentes</h2>
-        <p>Monitoramento contínuo do pipeline</p>
+        <p>Monitoramento continuo do pipeline</p>
       </div>
       <small data-incidents-updated>Atualizado no carregamento inicial</small>
     </div>
@@ -168,7 +263,7 @@
         </div>
       </li>
       {% else %}
-      <li class="incident-empty">Nenhum incidente crítico.</li>
+      <li class="incident-empty">Nenhum incidente critico.</li>
       {% endfor %}
     </ul>
   </section>
@@ -186,7 +281,7 @@
 
   <h2>Jobs recentes</h2>
   <table aria-label="Tabela de jobs recentes">
-    <caption class="sr-only">Lista de jobs processados com status e precisão</caption>
+    <caption class="sr-only">Lista de jobs processados com status e precisao</caption>
     <thead>
       <tr>
         <th scope="col">ID</th>
@@ -194,8 +289,8 @@
         <th scope="col">Perfil</th>
         <th scope="col">Status</th>
         <th scope="col">Idioma</th>
-        <th scope="col">Precisão</th>
-        <th scope="col">Ações</th>
+        <th scope="col">Precisao</th>
+        <th scope="col">Acoes</th>
       </tr>
     </thead>
     <tbody>
@@ -210,9 +305,9 @@
           {% set accuracy = job.metadata.get("accuracy_status") if job.metadata else "" %}
           {% if accuracy %}
           {% if accuracy == "needs_review" %}
-          <span class="badge badge-warning" aria-label="Precisão: requer revisão">Rever</span>
+          <span class="badge badge-warning" aria-label="Precisao: requer revisao">Rever</span>
           {% elif accuracy == "passing" %}
-          <span class="badge badge-success" aria-label="Precisão: dentro da meta">OK</span>
+          <span class="badge badge-success" aria-label="Precisao: dentro da meta">OK</span>
           {% else %}
           <span class="badge">{{ accuracy }}</span>
           {% endif %}

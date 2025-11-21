@@ -15,7 +15,7 @@ class GoTranscriptClient(DeliveryClient):
 
     def __init__(self, base_url: str, api_key: str, timeout: int = 30) -> None:
         if not api_key:
-            raise ValueError("GOTRANSCRIPT_API_KEY não configurado.")
+            raise ValueError("GOTRANSCRIPT_API_KEY nao configurado.")
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.timeout = timeout

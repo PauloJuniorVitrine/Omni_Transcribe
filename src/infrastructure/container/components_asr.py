@@ -90,14 +90,14 @@ def _build_asr_clients(settings: Settings) -> Dict[str, AsrEngineClient]:
         raise RuntimeError("OPENAI_API_KEY precisa estar configurada para usar o engine openai.")
 
     if not clients:
-        raise RuntimeError("Nenhum cliente ASR disponível. Configure OpenAI ou faster-whisper.")
+        raise RuntimeError("Nenhum cliente ASR disponivel. Configure OpenAI ou faster-whisper.")
     return clients
 
 
 def _build_chat_client(settings: Settings) -> OpenAIChatHttpClient:
     chat_api_key = settings.chatgpt_api_key or settings.openai_api_key
     if not chat_api_key:
-        raise RuntimeError("CHATGPT_API_KEY ou OPENAI_API_KEY obrigatória para pós-edição com GPT.")
+        raise RuntimeError("CHATGPT_API_KEY ou OPENAI_API_KEY obrigatoria para pos-edicao com GPT.")
     return OpenAIChatHttpClient(
         api_key=chat_api_key,
         base_url=settings.openai_base_url,

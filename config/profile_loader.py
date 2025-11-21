@@ -37,11 +37,11 @@ def _split_front_matter(raw_text: str) -> Tuple[str, str]:
     """
     cleaned = raw_text.lstrip()
     if not cleaned.startswith("---"):
-        raise ProfileLoaderError("Perfil inválido: front matter YAML ausente.")
+        raise ProfileLoaderError("Perfil invalido: front matter YAML ausente.")
 
     parts = cleaned.split("---", 2)
     if len(parts) < 3:
-        raise ProfileLoaderError("Perfil inválido: bloco YAML não fechado corretamente.")
+        raise ProfileLoaderError("Perfil invalido: bloco YAML nao fechado corretamente.")
     _, yaml_block, body = parts
     return yaml_block.strip(), body.strip()
 
@@ -49,7 +49,7 @@ def _split_front_matter(raw_text: str) -> Tuple[str, str]:
 def parse_profile_file(path: Path) -> ProfileDocument:
     """Parse a profile file and return a ProfileDocument."""
     if not path.exists():
-        raise ProfileLoaderError(f"Perfil não encontrado: {path}")
+        raise ProfileLoaderError(f"Perfil nao encontrado: {path}")
 
     raw_text = path.read_text(encoding="utf-8")
     yaml_block, body = _split_front_matter(raw_text)

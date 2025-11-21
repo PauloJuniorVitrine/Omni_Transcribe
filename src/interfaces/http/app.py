@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import csv
 import json
@@ -13,7 +13,7 @@ from collections import deque
 import time
 from typing import Any, Deque, Dict, List, Optional, TypedDict
 
-from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -68,6 +68,7 @@ def _get_template_registry() -> DeliveryTemplateRegistry:
 
 # Artifact download whitelist & signature
 ALLOWED_DOWNLOAD_EXTENSIONS = {"txt", "srt", "vtt", "json", "zip"}
+ALLOWED_UPLOAD_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg"}
 ARTIFACT_TOKEN_TTL_MINUTES = 10
 
 class FlashPayload(TypedDict):
@@ -76,20 +77,22 @@ class FlashPayload(TypedDict):
 
 
 _FLASH_MESSAGES: Dict[str, FlashPayload] = {
-    "review-approved": {"text": "Revisão registrada como aprovada.", "variant": "success"},
-    "review-adjust": {"text": "Revisão marcada como precisando de ajustes.", "variant": "warning"},
-    "download-error": {"text": "Não foi possível baixar o arquivo solicitado.", "variant": "error"},
-    "login-success": {"text": "Sessão iniciada com sucesso.", "variant": "success"},
-    "process-started": {"text": "Processamento assíncrono iniciado para este job.", "variant": "info"},
+    "review-approved": {"text": "Revisao registrada como aprovada.", "variant": "success"},
+    "review-adjust": {"text": "Revisao marcada como precisando de ajustes.", "variant": "warning"},
+    "download-error": {"text": "Nao foi possivel baixar o arquivo solicitado.", "variant": "error"},
+    "login-success": {"text": "Sessao iniciada com sucesso.", "variant": "success"},
+    "process-started": {"text": "Processamento assincrono iniciado para este job.", "variant": "info"},
     "process-error": {"text": "Falha ao iniciar o processamento. Verifique os logs.", "variant": "error"},
+    "upload-success": {"text": "Upload recebido e job criado.", "variant": "success"},
+    "flags-updated": {"text": "Feature flags atualizadas.", "variant": "success"},
     "api-settings-saved": {"text": "Credenciais atualizadas com sucesso.", "variant": "success"},
     "template-updated": {"text": "Formato de entrega atualizado.", "variant": "success"},
     "template-created": {"text": "Template criado com sucesso.", "variant": "success"},
 }
 _LEVEL_ICONS = {
-    LogLevel.INFO: "ℹ️",
-    LogLevel.WARNING: "⚠️",
-    LogLevel.ERROR: "⛔",
+    LogLevel.INFO: "[i]",
+    LogLevel.WARNING: "[!]",
+    LogLevel.ERROR: "[x]",
 }
 _LEVEL_ICON_MAP = {level.value: icon for level, icon in _LEVEL_ICONS.items()}
 
@@ -175,6 +178,7 @@ async def list_jobs(
         "selected_profile": profile or "",
         "selected_accuracy": accuracy or "",
         "profile_options": profile_options,
+        "engine_options": [engine.value for engine in EngineType],
         "status_options": [job_status.value for job_status in JobStatus],
         "accuracy_options": ["passing", "needs_review"],
         "flash_message": flash,
@@ -185,6 +189,7 @@ async def list_jobs(
         "feature_flags": feature_flags,
         "csrf_token": (session or {}).get("csrf_token", ""),
         "accuracy_summary": accuracy_summary,
+        "max_audio_size_mb": getattr(_app_settings, "max_audio_size_mb", 0),
     }
     return templates.TemplateResponse(request, "jobs.html", context)
 
@@ -231,7 +236,7 @@ async def api_settings_page(
 ) -> HTMLResponse:
     feature_flags = _feature_flags_snapshot()
     if not feature_flags.get("ui.api_settings", True):
-        raise HTTPException(status_code=404, detail="Configuração indisponível.")
+        raise HTTPException(status_code=404, detail="Configuracao indisponivel.")
     flash = _get_flash_message(request.query_params.get("flash"))
     credentials = _runtime_store.read()
     whisper = credentials.get("whisper", {})
@@ -325,6 +330,36 @@ async def template_settings_page(
     return templates.TemplateResponse(request, "template_settings.html", context)
 
 
+@app.get("/settings/flags", response_class=HTMLResponse)
+async def flag_settings_page(
+    request: Request,
+    session: dict | None = Depends(require_active_session),
+) -> HTMLResponse:
+    flash = _get_flash_message(request.query_params.get("flash"))
+    flags = _feature_flags_snapshot()
+    rows = [{"name": name, "enabled": value} for name, value in sorted(flags.items())]
+    context = {
+        "request": request,
+        "flash_message": flash,
+        "header_session": _summarize_session(session),
+        "flags": rows,
+        "csrf_token": (session or {}).get("csrf_token", ""),
+    }
+    return templates.TemplateResponse(request, "flag_settings.html", context)
+
+
+@app.post("/settings/flags")
+async def update_flag(request: Request, _: dict | None = Depends(require_active_session)) -> Response:
+    form = await request.form()
+    provider = get_feature_flags()
+    for key, value in form.items():
+        if not key.startswith("flag_"):
+            continue
+        name = key.replace("flag_", "", 1)
+        provider.set_flag(name, value == "on")
+    return RedirectResponse("/settings/flags?flash=flags-updated", status_code=303)
+
+
 @app.post("/settings/templates")
 async def create_template_definition(
     request: Request,
@@ -338,13 +373,13 @@ async def create_template_definition(
     slug = _normalize_template_id(template_id)
     body_value = body.strip()
     if not body_value:
-        raise HTTPException(status_code=400, detail="Corpo do template n�o pode estar vazio.")
+        raise HTTPException(status_code=400, detail="Corpo do template no pode estar vazio.")
     resolved_name = name.strip() or slug.replace("-", " ").title()
     resolved_description = description.strip()
     _templates_dir.mkdir(parents=True, exist_ok=True)
     target = _templates_dir / f"{slug}.template.txt"
     if target.exists():
-        raise HTTPException(status_code=400, detail="J� existe template com este identificador.")
+        raise HTTPException(status_code=400, detail="J existe template com este identificador.")
     locale_code = _normalize_locale_code(locale)
     content = _compose_template_file(
         template_id=slug,
@@ -384,10 +419,10 @@ async def update_template_definition(
     slug = _normalize_template_id(template_id)
     target = _templates_dir / f"{slug}.template.txt"
     if not target.exists():
-        raise HTTPException(status_code=404, detail="Template n�o encontrado.")
+        raise HTTPException(status_code=404, detail="Template no encontrado.")
     body_value = body.strip()
     if not body_value:
-        raise HTTPException(status_code=400, detail="Corpo do template n�o pode estar vazio.")
+        raise HTTPException(status_code=400, detail="Corpo do template no pode estar vazio.")
     registry = _get_template_registry()
     existing = registry.get(slug)
     resolved_name = name.strip() or existing.name
@@ -426,7 +461,7 @@ async def get_template_raw(
     slug = _normalize_template_id(template_id)
     target = _templates_dir / f"{slug}.template.txt"
     if not target.exists():
-        raise HTTPException(status_code=404, detail="Template n�o encontrado.")
+        raise HTTPException(status_code=404, detail="Template no encontrado.")
     content = target.read_text(encoding="utf-8")
     segments = content.split("---")
     body = segments[2].strip() if len(segments) >= 3 else content
@@ -459,9 +494,9 @@ async def delete_template_definition(
     slug = _normalize_template_id(template_id)
     target = _templates_dir / f"{slug}.template.txt"
     if not target.exists():
-        raise HTTPException(status_code=404, detail="Template n�o encontrado.")
+        raise HTTPException(status_code=404, detail="Template no encontrado.")
     if slug == _get_template_registry().default_template_id:
-        raise HTTPException(status_code=400, detail="Template padr�o n�o pode ser removido.")
+        raise HTTPException(status_code=400, detail="Template padro no pode ser removido.")
     target.unlink()
     _reload_template_registry()
     _append_template_audit(action="delete", template_id=slug, metadata={})
@@ -494,6 +529,51 @@ async def api_process_job(
     return JSONResponse({"job_id": job_id, "status": "processing"})
 
 
+@app.post("/jobs/upload")
+async def upload_job(
+    request: Request,
+    file: UploadFile = File(...),
+    profile: str = Form("geral"),
+    engine: str = Form("openai"),
+    auto_process: bool = Form(False),
+    job_controller: JobController = Depends(get_job_controller_dep),
+    _: dict | None = Depends(require_active_session),
+) -> Response:
+    settings = get_settings()
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Arquivo invalido.")
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in ALLOWED_UPLOAD_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Extensao de audio nao permitida.")
+    payload = await file.read()
+    if not payload:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    max_bytes = settings.max_audio_size_mb * 1024 * 1024
+    if len(payload) > max_bytes:
+        raise HTTPException(status_code=400, detail="Arquivo excede limite configurado.")
+
+    target_dir = Path(settings.base_input_dir) / (profile or "geral")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / file.filename
+    if target.exists():
+        target = target_dir / f"{Path(file.filename).stem}_{int(time.time())}{suffix}"
+    target.write_bytes(payload)
+
+    try:
+        engine_value = EngineType(engine)
+    except Exception:
+        engine_value = EngineType.OPENAI
+    job = job_controller.ingest_file(target, profile, engine_value)
+    flash_token = "upload-success"
+    if auto_process:
+        try:
+            job_controller.process_job(job.id)
+            flash_token = "process-started"
+        except Exception:
+            flash_token = "process-error"
+    return RedirectResponse(url=f"/jobs/{job.id}?flash={flash_token}", status_code=303)
+
+
 @app.post("/jobs/{job_id}/process")
 async def ui_process_job(
     job_id: str,
@@ -519,7 +599,7 @@ async def job_detail(
 ) -> HTMLResponse:
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
-        raise HTTPException(status_code=404, detail="Job não encontrado")
+        raise HTTPException(status_code=404, detail="Job nao encontrado")
     artifacts = _serialize_artifacts(job.output_paths)
 
     transcript_preview = ""
@@ -598,7 +678,7 @@ async def update_job_template(
 ) -> Response:
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
-        raise HTTPException(status_code=404, detail="Job n�o encontrado")
+        raise HTTPException(status_code=404, detail="Job no encontrado")
     template_registry = _get_template_registry()
     if not template_registry:
         raise HTTPException(status_code=500, detail="Nenhum template configurado.")
@@ -635,7 +715,7 @@ async def update_job_locale(
 ) -> Response:
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
-        raise HTTPException(status_code=404, detail="Job n�o encontrado")
+        raise HTTPException(status_code=404, detail="Job no encontrado")
     locale = _normalize_locale_code(delivery_locale) or None
     job.metadata = job.metadata or {}
     timestamp = datetime.now(timezone.utc)
@@ -669,7 +749,7 @@ async def api_job_logs(
 ) -> JSONResponse:
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
-        raise HTTPException(status_code=404, detail="Job não encontrado")
+        raise HTTPException(status_code=404, detail="Job nao encontrado")
     level = request.query_params.get("level") or ""
     event_contains = request.query_params.get("event") or ""
     include_all = request.query_params.get("all") == "true"
@@ -708,10 +788,10 @@ async def api_job_logs_export(
 ) -> Response:
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
-        raise HTTPException(status_code=404, detail="Job não encontrado")
+        raise HTTPException(status_code=404, detail="Job nao encontrado")
     export_format = format.lower()
     if export_format not in {"csv", "json"}:
-        raise HTTPException(status_code=400, detail="Formato inválido; use csv ou json.")
+        raise HTTPException(status_code=400, detail="Formato invalido; use csv ou json.")
     query = log_service.query(
         job_id=job_id,
         level=level or "",
@@ -748,7 +828,7 @@ async def review_job(
 ) -> RedirectResponse:
     approved = decision == "approve"
     review_controller.submit_review(job_id, reviewer=reviewer, approved=approved, notes=notes or None)
-    logger.info("Revisão registrada", extra={"job_id": job_id, "approved": approved})
+    logger.info("Revisao registrada", extra={"job_id": job_id, "approved": approved})
     flash = "review-approved" if approved else "review-adjust"
     return RedirectResponse(url=f"/jobs/{job_id}?flash={flash}", status_code=303)
 
@@ -769,12 +849,12 @@ async def download_artifact(
         settings = get_settings()
         allowed_roots = [Path(settings.base_output_dir).resolve(), Path(settings.base_backup_dir).resolve()]
         if not any(file_path == root or root in file_path.parents for root in allowed_roots):
-            raise HTTPException(status_code=400, detail="Caminho inválido.")
+            raise HTTPException(status_code=400, detail="Caminho invalido.")
         if not file_path.exists():
-            raise HTTPException(status_code=404, detail="Arquivo não encontrado.")
+            raise HTTPException(status_code=404, detail="Arquivo nao encontrado.")
         suffix = file_path.suffix.lower().lstrip(".")
         if suffix not in settings.allowed_download_extensions:
-            raise HTTPException(status_code=400, detail="Extensão não permitida.")
+            raise HTTPException(status_code=400, detail="Extensao nao permitida.")
         _enforce_download_rate(session_id)
         if _feature_flags_snapshot().get("downloads.signature_required", True):
             _validate_download_token(path=path, token=token, expires=expires)
@@ -817,13 +897,13 @@ def _validate_download_token(path: str, token: Optional[str], expires: Optional[
     try:
         exp = datetime.fromisoformat(expires)
     except ValueError:
-        raise HTTPException(status_code=401, detail="Token inválido.")
+        raise HTTPException(status_code=401, detail="Token invalido.")
     if exp < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Token expirado.")
     signature_payload = f"{path}:{expires}".encode("utf-8")
     expected = hmac.new(secret, signature_payload, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected, token):
-        raise HTTPException(status_code=401, detail="Token inválido.")
+        raise HTTPException(status_code=401, detail="Token invalido.")
 
 
 def _get_flash_message(token: Optional[str]) -> Optional[FlashPayload]:
@@ -963,10 +1043,10 @@ def _compose_accuracy_snapshot(job: Job) -> Dict[str, Any]:
     status = metadata.get("accuracy_status")
     requires_review = metadata.get("accuracy_requires_review") == "true"
     badge = "success"
-    label = "Sem medições"
+    label = "Sem medicoes"
     if status == "needs_review":
         badge = "warning"
-        label = "Revisão obrigatória"
+        label = "Revisao obrigatoria"
     elif status == "passing":
         badge = "success"
         label = "Dentro da meta"
@@ -1007,9 +1087,9 @@ def _summarize_session(session: Optional[Dict[str, Any]]) -> Optional[Dict[str, 
     metadata = session.get('metadata') or {}
     session_id = str(session.get('session_id') or '') or metadata.get('state') or ''
     suffix = session_id[-4:].upper() if session_id else 'AUTH'
-    label = metadata.get('display_name') or f"Sessão {suffix}"
+    label = metadata.get('display_name') or f"Sessao {suffix}"
     created_at = session.get('created_at')
-    caption = "Sessão ativa"
+    caption = "Sessao ativa"
     if isinstance(created_at, (int, float)):
         dt = datetime.fromtimestamp(created_at, tz=timezone.utc)
         caption = f"Desde {dt.strftime('%H:%M:%S')} UTC"
@@ -1072,15 +1152,15 @@ def _format_template_label(updated_at: Optional[str]) -> str:
         return "Formato nunca atualizado."
     try:
         timestamp = datetime.fromisoformat(updated_at)
-        return f"Atualizado �s {timestamp.strftime('%H:%M:%S')}"
+        return f"Atualizado s {timestamp.strftime('%H:%M:%S')}"
     except ValueError:
-        return "Atualiza��o registrada."
+        return "Atualizao registrada."
 
 
 def _normalize_template_id(value: str) -> str:
     slug = (value or "").strip().lower()
     if not slug or not _TEMPLATE_ID_PATTERN.match(slug):
-        raise HTTPException(status_code=400, detail="Identificador deve conter letras/n�meros e tra��os.")
+        raise HTTPException(status_code=400, detail="Identificador deve conter letras/nmeros e traos.")
     return slug
 
 
@@ -1089,7 +1169,7 @@ def _normalize_locale_code(value: str) -> Optional[str]:
         return None
     slug = value.strip()
     if not _LOCALE_PATTERN.match(slug):
-        raise HTTPException(status_code=400, detail="Locale inválido. Use padrão pt-BR, en-US, etc.")
+        raise HTTPException(status_code=400, detail="Locale invalido. Use padrao pt-BR, en-US, etc.")
     return slug.replace("_", "-").lower()
 
 
@@ -1104,7 +1184,7 @@ def _compose_template_file(template_id: str, name: str, description: str, body: 
 def _build_preview_context() -> Dict[str, str]:
     return {
         "header": "Arquivo original: exemplo.wav\nPerfil editorial: preview",
-        "transcript": "Este é um trecho de demonstração para validar o layout final do template.",
+        "transcript": "Este e um trecho de demonstracao para validar o layout final do template.",
         "job_id": "preview-job",
         "profile_id": "preview-profile",
         "language": "pt-BR",

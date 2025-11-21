@@ -5,7 +5,7 @@
   <header class="section-header">
     <div>
       <h2>Templates de entrega</h2>
-      <p>Defina formatos específicos por cliente/perfil para aplicar nos artefatos TXT.</p>
+      <p>Defina formatos especificos por cliente/perfil para aplicar nos artefatos TXT.</p>
     </div>
     {% if flash_message %}
     <div
@@ -23,14 +23,14 @@
     <h3>Templates cadastrados</h3>
     {% if templates %}
     <table class="template-table" aria-label="Templates configurados">
-      <caption class="sr-only">Lista de templates disponíveis</caption>
+      <caption class="sr-only">Lista de templates disponiveis</caption>
       <thead>
         <tr>
           <th scope="col">ID</th>
           <th scope="col">Nome</th>
-          <th scope="col">Descrição</th>
+          <th scope="col">Descricao</th>
           <th scope="col">Locale</th>
-          <th scope="col">Ações</th>
+          <th scope="col">Acoes</th>
         </tr>
       </thead>
       <tbody>
@@ -38,7 +38,7 @@
         <tr data-template-row="{{ template.id }}">
           <td><code>{{ template.id }}</code></td>
           <td>{{ template.name }}</td>
-          <td>{{ template.description or "Sem descrição." }}</td>
+          <td>{{ template.description or "Sem descricao." }}</td>
           <td>{{ template.locale or "default" }}</td>
           <td>
             <button
@@ -76,19 +76,19 @@
       data-ajax="true"
       data-loading-surface="template-settings"
       data-success-message="Template criado com sucesso."
-      data-error-message="Não foi possível criar o template."
+      data-error-message="Nao foi possivel criar o template."
     >
       <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
       <label>
-        ID (sem espaços)
+        ID (sem espacos)
         <input type="text" name="template_id" required pattern="[a-z0-9_-]+" />
       </label>
       <label>
-        Nome amigável
+        Nome amigavel
         <input type="text" name="name" placeholder="Ex.: Cliente XPTO" />
       </label>
       <label>
-        Descrição
+        Descricao
         <input type="text" name="description" placeholder="Resumo do formato" />
       </label>
       <label>
@@ -100,12 +100,12 @@
         <textarea
           name="body"
           rows="6"
-          placeholder="Use {{header}} e {{transcript}} para inserir o conteúdo."
+          placeholder="Use {{header}} e {{transcript}} para inserir o conteudo."
           required
         ></textarea>
       </label>
       <div class="actions">
-        <button type="button" class="btn btn-secondary" data-template-preview="create">Pré-visualizar</button>
+        <button type="button" class="btn btn-secondary" data-template-preview="create">Pre-visualizar</button>
         <button type="submit" class="btn btn-primary" data-loading="Salvando...">Salvar template</button>
       </div>
       <pre class="template-preview" data-template-preview-output="create"></pre>
@@ -113,7 +113,7 @@
   </div>
 
   <div class="card">
-    <h3>Histórico de alterações</h3>
+    <h3>Historico de alteracoes</h3>
     {% if template_audit %}
     <ul class="audit-list">
       {% for entry in template_audit %}
@@ -144,7 +144,7 @@
         <input type="text" name="name" />
       </label>
       <label>
-        Descrição
+        Descricao
         <input type="text" name="description" />
       </label>
       <label>
@@ -157,8 +157,8 @@
       </label>
     </div>
     <footer class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-template-preview="edit">Pré-visualizar</button>
-      <button type="submit" class="btn btn-primary">Salvar alterações</button>
+      <button type="button" class="btn btn-secondary" data-template-preview="edit">Pre-visualizar</button>
+      <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
       <button type="button" class="btn btn-secondary" data-dismiss-modal>Cancelar</button>
     </footer>
     <pre class="template-preview" data-template-preview-output="edit"></pre>

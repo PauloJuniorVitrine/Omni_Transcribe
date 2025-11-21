@@ -211,6 +211,45 @@ def test_ui_process_job_handles_failure(tmp_path, monkeypatch):
     app.dependency_overrides.clear()
 
 
+def test_upload_creates_job_and_saves_file(tmp_path, monkeypatch):
+    class StubJobControllerUpload:
+        def __init__(self) -> None:
+            self.job = None
+            self.processed: list[str] = []
+
+        def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
+            self.job = Job(
+                id="job-upload",
+                source_path=path,
+                profile_id=profile_id,
+                engine=engine,
+                status=JobStatus.PENDING,
+            )
+            return self.job
+
+        def process_job(self, job_id: str) -> None:
+            self.processed.append(job_id)
+
+        def list_jobs(self, limit: int = 20):
+            return [self.job] if self.job else []
+
+    controller = StubJobControllerUpload()
+    app.dependency_overrides[get_job_controller_dep] = lambda: controller
+    _force_authentication()
+    _override_app_settings(monkeypatch, base_input_dir=tmp_path)
+
+    client = TestClient(app, follow_redirects=False)
+    files = {"file": ("audio.wav", b"data", "audio/wav")}
+    data = {"profile": "geral", "engine": "openai", "auto_process": "true", "csrf_token": "test-csrf"}
+    response = client.post("/jobs/upload", files=files, data=data)
+    assert response.status_code == 303
+    assert controller.job is not None
+    assert controller.job.source_path.exists()
+    assert controller.processed == ["job-upload"]
+
+    app.dependency_overrides.clear()
+
+
 def test_dashboard_summary_api_returns_counts(tmp_path, monkeypatch):
     job_pending = Job(
         id="job-summary-01",
@@ -414,6 +453,11 @@ def test_api_settings_page_allows_updates(tmp_path, monkeypatch):
     store = RuntimeCredentialStore(tmp_path / "runtime_credentials.json")
     monkeypatch.setattr(http_app, "_runtime_store", store)
     monkeypatch.setattr(config, "_runtime_store", store)
+
+
+
+
+
 
 
 

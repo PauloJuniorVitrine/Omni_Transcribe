@@ -38,17 +38,17 @@ function bindAjaxForms() {
         }
         const payload = await response.json().catch(() => ({}));
         const successMessage =
-          form.dataset.successMessage || payload.message || "Operação concluída.";
+          form.dataset.successMessage || payload.message || "Operacao concluida.";
         showToast(successMessage, "success");
         if (updatedTarget && payload.updated_at_human) {
           document
             .querySelectorAll(`[data-updated-label="${updatedTarget}"]`)
             .forEach((label) => {
-              label.textContent = `Atualizado às ${payload.updated_at_human}`;
+              label.textContent = `Atualizado as ${payload.updated_at_human}`;
             });
         }
       } catch (_error) {
-        const errorMessage = form.dataset.errorMessage || "Não foi possível completar a ação.";
+        const errorMessage = form.dataset.errorMessage || "Nao foi possivel completar a acao.";
         showToast(errorMessage, "error");
       } finally {
         if (surfaceId) {
@@ -88,7 +88,7 @@ function bindTemplateActions() {
       }).catch(() => null);
       const payload = await response?.json().catch(() => null);
       if (!payload) {
-        showToast("Não foi possível carregar o template.", "error");
+        showToast("Nao foi possivel carregar o template.", "error");
         return;
       }
       form.querySelector('input[name="template_id"]').value = templateId;
@@ -112,7 +112,7 @@ function bindTemplateActions() {
       headers: { Accept: "application/json", "X-Requested-With": "fetch" },
     });
     if (!response.ok) {
-      showToast("Não foi possível atualizar o template.", "error");
+      showToast("Nao foi possivel atualizar o template.", "error");
       return;
     }
     showToast("Template atualizado com sucesso.", "success");
@@ -129,7 +129,7 @@ function bindTemplateActions() {
         headers: withCsrf({ "X-Requested-With": "fetch" }),
       });
       if (!response.ok) {
-        showToast("Não foi possível remover o template.", "error");
+        showToast("Nao foi possivel remover o template.", "error");
         return;
       }
       document.querySelector(`[data-template-row="${templateId}"]`)?.remove();
@@ -151,7 +151,7 @@ function bindTemplateActions() {
       }
       const bodyFieldRef = formRef.querySelector('textarea[name="body"]');
       if (!bodyFieldRef || !bodyFieldRef.value.trim()) {
-        showToast("Informe o corpo do template antes de pré-visualizar.", "warning");
+        showToast("Informe o corpo do template antes de pre-visualizar.", "warning");
         return;
       }
       const previewData = new FormData();
@@ -171,10 +171,10 @@ function bindTemplateActions() {
           `[data-template-preview-output="${mode}"]`
         );
         if (target) {
-          target.textContent = payload.rendered || "Prévia indisponível.";
+          target.textContent = payload.rendered || "Previa indisponivel.";
         }
       } catch (_error) {
-        showToast("Falha ao gerar prévia.", "error");
+        showToast("Falha ao gerar previa.", "error");
       }
     });
   });

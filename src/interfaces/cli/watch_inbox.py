@@ -58,7 +58,7 @@ class InboxEventHandler(FileSystemEventHandler):
             thread = threading.Thread(target=self._run_pipeline, args=(job.id,), daemon=True)
             thread.start()
         else:
-            self.logger.warning("Pipeline não configurado; job aguardando", extra={"job_id": job.id})
+            self.logger.warning("Pipeline nao configurado; job aguardando", extra={"job_id": job.id})
 
     def _run_pipeline(self, job_id: str) -> None:
         try:

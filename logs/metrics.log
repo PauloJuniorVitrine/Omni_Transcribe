@@ -369,3 +369,45 @@
 {"timestamp": "2025-11-14T17:20:55.989658+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
 {"timestamp": "2025-11-14T17:20:57.676869+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
 {"timestamp": "2025-11-14T17:20:57.700598+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:28:06.712784+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:28:06.861389+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:28:06.967051+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-21T13:28:09.247032+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:28:09.444532+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:28:09.461105+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:29:09.695470+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:29:09.800086+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:29:10.616387+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-21T13:29:13.966218+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:29:14.140542+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:29:14.154222+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:34:00.737468+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:34:00.841840+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:34:00.853439+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-21T13:34:02.314365+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:34:02.517719+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:34:02.530851+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:42:56.810246+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:42:57.055663+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:42:57.068187+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-21T13:42:59.177229+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:43:00.160552+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:43:00.184999+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-21T13:45:07.376682+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:45:07.377823+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:45:17.137413+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:45:17.145153+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:45:17.925716+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:45:17.927362+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:46:10.778485+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:46:10.825157+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:46:19.450535+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:46:19.453465+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:46:20.751359+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:46:20.754418+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:49:07.916726+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:49:07.922857+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:49:09.010504+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-21T13:49:09.013654+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:49:11.698656+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-21T13:49:11.700750+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}

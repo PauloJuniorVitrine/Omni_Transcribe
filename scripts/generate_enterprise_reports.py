@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Gera arquivos Enterprise+ (feature flags, antipadrões, resiliência) de forma reproduzível.
+Gera arquivos Enterprise+ (feature flags, antipadroes, resiliencia) de forma reproduzivel.
 
 Uso:
     python scripts/generate_enterprise_reports.py --exec-id 20251113T103533Z_MSJTU6
@@ -16,16 +16,16 @@ from textwrap import dedent
 
 FLAG_METADATA = {
     "dashboard.live_summary": {
-        "backend": "Dashboard usa resumo dinâmico",
+        "backend": "Dashboard usa resumo dinamico",
         "frontend": "Polling JS em `jobs.html`",
     },
     "dashboard.live_incidents": {
-        "backend": "Endpoint sempre disponível",
-        "frontend": "Painel visível quando flag on",
+        "backend": "Endpoint sempre disponivel",
+        "frontend": "Painel visivel quando flag on",
     },
     "jobs.manual_reprocess": {
         "backend": "Rota `/jobs/{id}/process`",
-        "frontend": "Formulário AJAX exibido só quando on",
+        "frontend": "Formulario AJAX exibido so quando on",
     },
     "ui.api_settings": {
         "backend": "Rota retorna 404 se flag off",
@@ -36,18 +36,18 @@ FLAG_METADATA = {
 FRONT_VISIBILITY = {
     "dashboard.live_summary": {
         "on": "Cards atualizados em tempo real.",
-        "off": "Cards exibem dados estáticos.",
+        "off": "Cards exibem dados estaticos.",
     },
     "dashboard.live_incidents": {
-        "on": "Lista dinâmica de incidentes com badge.",
+        "on": "Lista dinamica de incidentes com badge.",
         "off": "Mensagem informando monitoramento desativado.",
     },
     "jobs.manual_reprocess": {
-        "on": "Formulário AJAX e status visível.",
-        "off": "Seção oculta; logs continuam acessíveis.",
+        "on": "Formulario AJAX e status visivel.",
+        "off": "Secao oculta; logs continuam acessiveis.",
     },
     "ui.api_settings": {
-        "on": "Página de credenciais acessível.",
+        "on": "Pagina de credenciais acessivel.",
         "off": "Rota 404; menu deve ocultar link.",
     },
 }
@@ -58,7 +58,7 @@ ANTIPATTERNS = [
 ]
 
 RESILIENCE = [
-    ("Dashboard", "Polling + fallback de status", "Médio"),
+    ("Dashboard", "Polling + fallback de status", "Medio"),
     ("Downloads", "Token HMAC (flag opcional)", "Alto"),
 ]
 
@@ -77,7 +77,7 @@ def write_file(path: Path, content: str) -> None:
 
 def generate_feature_flag_docs(exec_id: str) -> None:
     flags = load_flags()
-    diff_lines = ["# Feature Flag Contract Diff – EXEC_ID {exec}".format(exec=exec_id), ""]
+    diff_lines = ["# Feature Flag Contract Diff  EXEC_ID {exec}".format(exec=exec_id), ""]
     diff_lines.append("| Flag | Default | Backend Uso | Frontend Uso | Status atual |")
     diff_lines.append("| --- | --- | --- | --- | --- |")
     for name, meta in FLAG_METADATA.items():
@@ -90,7 +90,7 @@ def generate_feature_flag_docs(exec_id: str) -> None:
         "\n".join(diff_lines),
     )
 
-    front_lines = ["# Front Visibility vs Feature Flags – EXEC_ID {exec}".format(exec=exec_id), ""]
+    front_lines = ["# Front Visibility vs Feature Flags  EXEC_ID {exec}".format(exec=exec_id), ""]
     front_lines.append("| Flag | ON | OFF |")
     front_lines.append("| --- | --- | --- |")
     for name, meta in FRONT_VISIBILITY.items():
@@ -102,7 +102,7 @@ def generate_feature_flag_docs(exec_id: str) -> None:
 
 
 def generate_antipatterns(exec_id: str) -> None:
-    lines = ["# Antipatterns Detected – EXEC_ID {exec}".format(exec=exec_id), ""]
+    lines = ["# Antipatterns Detected  EXEC_ID {exec}".format(exec=exec_id), ""]
     lines.append("| Tipo | Local | Status |")
     lines.append("| --- | --- | --- |")
     for item in ANTIPATTERNS:
@@ -111,8 +111,8 @@ def generate_antipatterns(exec_id: str) -> None:
 
 
 def generate_resilience(exec_id: str) -> None:
-    lines = ["# Resilience Matrix – EXEC_ID {exec}".format(exec=exec_id), ""]
-    lines.append("| Área | Mitigação | Sensibilidade |")
+    lines = ["# Resilience Matrix  EXEC_ID {exec}".format(exec=exec_id), ""]
+    lines.append("| Area | Mitigacao | Sensibilidade |")
     lines.append("| --- | --- | --- |")
     for area, mitigation, risk in RESILIENCE:
         lines.append(f"| {area} | {mitigation} | {risk} |")
@@ -120,14 +120,14 @@ def generate_resilience(exec_id: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Gera relatórios Enterprise+.")
-    parser.add_argument("--exec-id", required=False, help="Identificador da execução.")
+    parser = argparse.ArgumentParser(description="Gera relatorios Enterprise+.")
+    parser.add_argument("--exec-id", required=False, help="Identificador da execucao.")
     args = parser.parse_args()
     exec_id = args.exec_id or datetime.utcnow().strftime("%Y%m%dT%H%M%SZ_AUTOGEN")
     generate_feature_flag_docs(exec_id)
     generate_antipatterns(exec_id)
     generate_resilience(exec_id)
-    print(f"Relatórios Enterprise+ gerados para {exec_id}.")
+    print(f"Relatorios Enterprise+ gerados para {exec_id}.")
 
 
 if __name__ == "__main__":

@@ -98,7 +98,7 @@ class RuntimeCredentialStore:
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
-            # File corruption – fallback to defaults
+            # File corruption  fallback to defaults
             return json.loads(json.dumps(DEFAULT_CREDENTIALS))
 
         if isinstance(data, dict) and data.get("encrypted"):
@@ -111,13 +111,13 @@ class RuntimeCredentialStore:
                 decrypted = self._cipher.decrypt(payload.encode("utf-8"))
             except InvalidToken:
                 if not getattr(self, "_secret_loaded_from_cache", False):
-                    raise RuntimeError("N�o foi poss�vel descriptografar as credenciais.")
+                    raise RuntimeError("No foi possvel descriptografar as credenciais.")
                 self._reset_credentials()
                 return json.loads(json.dumps(DEFAULT_CREDENTIALS))
             return json.loads(decrypted.decode("utf-8"))
 
         if isinstance(data, dict):
-            # Migração automática para formato criptografado
+            # Migracao automatica para formato criptografado
             self._write(data)
             return data
         return json.loads(json.dumps(DEFAULT_CREDENTIALS))
@@ -171,7 +171,7 @@ class RuntimeCredentialStore:
                 key = normalized.encode("utf-8")
             return Fernet(key)
         except (ValueError, TypeError) as exc:
-            raise RuntimeError("CREDENTIALS_SECRET_KEY inválida. Use chave urlsafe de 32 bytes.") from exc
+            raise RuntimeError("CREDENTIALS_SECRET_KEY invalida. Use chave urlsafe de 32 bytes.") from exc
 
     def _write(self, data: Dict[str, Dict[str, str]]) -> None:
         serialized = json.dumps(data, ensure_ascii=False).encode("utf-8")

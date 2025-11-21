@@ -79,7 +79,7 @@ def write_report(events: List[AccuracyEvent]) -> None:
     ]
     for event in events[-20:]:
         lines.append(
-            f"| {event.job_id} | {event.score:.4f} | {event.wer:.4f} | {'✅' if not event.requires_review else '⚠️'} | {event.timestamp} |"
+            f"| {event.job_id} | {event.score:.4f} | {event.wer:.4f} | {'' if not event.requires_review else ''} | {event.timestamp} |"
         )
     OUTPUT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 

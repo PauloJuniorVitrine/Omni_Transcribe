@@ -32,7 +32,7 @@ class GenerateArtifacts:
     def execute(self, job_id: str, post_edit_result: PostEditResult) -> List[Artifact]:
         job = self.job_repository.find_by_id(job_id)
         if not job:
-            raise ValueError(f"Job {job_id} não encontrado")
+            raise ValueError(f"Job {job_id} nao encontrado")
 
         profile = self.profile_provider.get(job.profile_id)
         artifacts: Iterable[Artifact] = self.artifact_builder.build(job, profile, post_edit_result)

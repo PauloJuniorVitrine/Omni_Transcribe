@@ -162,3 +162,33 @@
 {"timestamp": "2025-11-14T17:20:55.589098+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
 {"timestamp": "2025-11-14T17:20:55.617614+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
 {"timestamp": "2025-11-14T17:20:55.749260+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-21T13:28:08.361252+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-21T13:28:08.385300+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-21T13:28:08.887753+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-21T13:28:08.924739+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-21T13:28:08.950978+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-21T13:28:09.139999+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-21T13:29:12.048851+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-21T13:29:13.666849+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-21T13:29:13.786539+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-21T13:29:13.821065+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-21T13:29:13.836850+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-21T13:29:13.865401+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-21T13:34:01.218957+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-21T13:34:01.237310+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-21T13:34:02.106983+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-21T13:34:02.154611+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-21T13:34:02.188238+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-21T13:34:02.227112+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-21T13:42:58.157264+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-21T13:42:58.176121+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-21T13:42:58.263986+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-21T13:42:58.300496+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-21T13:42:58.317422+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-21T13:42:58.404259+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-21T13:45:21.260640+00:00", "action": "create", "template_id": "pw-1763732720426", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-21T13:45:21.606839+00:00", "action": "delete", "template_id": "pw-1763732720426", "metadata": {}}
+{"timestamp": "2025-11-21T13:46:23.436040+00:00", "action": "create", "template_id": "pw-1763732783107", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-21T13:46:23.640844+00:00", "action": "delete", "template_id": "pw-1763732783107", "metadata": {}}
+{"timestamp": "2025-11-21T13:49:14.699882+00:00", "action": "create", "template_id": "pw-1763732954409", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-21T13:49:15.736384+00:00", "action": "delete", "template_id": "pw-1763732954409", "metadata": {}}

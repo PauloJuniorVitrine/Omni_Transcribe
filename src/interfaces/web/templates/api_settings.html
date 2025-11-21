@@ -5,7 +5,7 @@
   <header class="section-header">
     <div>
       <h2>APIs & Modelos</h2>
-      <p>Gerencie as credenciais usadas pelo Whisper (ASR) e ChatGPT (pós-edição).</p>
+      <p>Gerencie as credenciais usadas pelo Whisper (ASR) e ChatGPT (pos-edicao).</p>
     </div>
     {% if flash_message %}
     <div
@@ -30,13 +30,13 @@
       data-loading-surface="api-settings"
       data-ajax="true"
       data-success-message="Credenciais Whisper atualizadas."
-    data-error-message="Não foi possível salvar Whisper."
+    data-error-message="Nao foi possivel salvar Whisper."
     data-updated-target="whisper"
   >
       <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
       <input type="hidden" name="target" value="whisper" />
       <h3>Whisper / ASR</h3>
-      <p>Utilizado no pipeline de transcrição.</p>
+      <p>Utilizado no pipeline de transcricao.</p>
       <label>
         Chave API
         <input
@@ -65,13 +65,13 @@
       data-loading-surface="api-settings"
       data-ajax="true"
       data-success-message="Credenciais ChatGPT atualizadas."
-      data-error-message="Não foi possível salvar ChatGPT."
+      data-error-message="Nao foi possivel salvar ChatGPT."
       data-updated-target="chatgpt"
   >
       <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
       <input type="hidden" name="target" value="chatgpt" />
-      <h3>ChatGPT / Pós-edição</h3>
-      <p>Responsável por ajustes e formatação da transcrição.</p>
+      <h3>ChatGPT / Pos-edicao</h3>
+      <p>Responsavel por ajustes e formatacao da transcricao.</p>
       <label>
         Chave API
         <input

@@ -37,7 +37,7 @@ class HandleReviewDecision:
     def execute(self, data: ReviewInput) -> UserReview:
         job = self.job_repository.find_by_id(data.job_id)
         if not job:
-            raise ValueError(f"Job {data.job_id} não encontrado")
+            raise ValueError(f"Job {data.job_id} nao encontrado")
 
         decision = ReviewDecision.APPROVED if data.approved else ReviewDecision.NEEDS_ADJUSTMENT
         job.set_status(JobStatus.APPROVED if data.approved else JobStatus.ADJUSTMENTS_REQUIRED, notes=data.notes)

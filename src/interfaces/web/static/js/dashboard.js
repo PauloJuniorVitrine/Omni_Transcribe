@@ -1,4 +1,4 @@
-﻿import { setSurfaceLoading } from "./core.js";
+import { setSurfaceLoading } from "./core.js";
 
 function bindLiveSummary() {
   const container = document.querySelector("[data-live-summary-endpoint]");
@@ -48,7 +48,7 @@ function bindLiveSummary() {
         text = percent ?? "-";
       } else if (field === "average_wer") {
         const percent = formatPercent(accuracy.average_wer);
-        text = percent ? `WER médio ${percent}` : "WER médio N/A";
+        text = percent ? `WER medio ${percent}` : "WER medio N/A";
       } else {
         const value = accuracy[field];
         text = typeof value === "number" ? String(value) : String(value || 0);
@@ -81,13 +81,13 @@ function bindLiveSummary() {
       if (payload.generated_at) {
         const updatedAt = new Date(payload.generated_at);
         const formatted = updatedAt.toLocaleTimeString("pt-BR", { hour12: false });
-        updateStatus(`Atualizado Ã s ${formatted}`, "success");
+        updateStatus(`Atualizado A s ${formatted}`, "success");
       } else {
-        updateStatus("AtualizaÃ§Ã£o em tempo real ativa", "success");
+        updateStatus("AtualizaAAo em tempo real ativa", "success");
       }
       hasLoaded = true;
     } catch (_error) {
-      updateStatus("AtualizaÃ§Ã£o em tempo real indisponÃ­vel", "error");
+      updateStatus("AtualizaAAo em tempo real indisponAvel", "error");
     } finally {
       if (surfaceId) {
         setSurfaceLoading(surfaceId, false);
@@ -194,7 +194,7 @@ function bindLiveIncidents() {
       if (payload.generated_at) {
         const updatedAt = new Date(payload.generated_at);
         const formatted = updatedAt.toLocaleTimeString("pt-BR", { hour12: false });
-        updateStatus(`Atualizado Ã s ${formatted}`, "success");
+        updateStatus(`Atualizado A s ${formatted}`, "success");
       } else {
         updateStatus("Monitoramento em tempo real ativo", "success");
       }

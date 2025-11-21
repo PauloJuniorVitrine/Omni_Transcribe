@@ -180,7 +180,7 @@ def build_sample_job() -> Job:
     artifact_dir = ROOT / "output" / job_id
     artifact_dir.mkdir(parents=True, exist_ok=True)
     transcript = artifact_dir / f"{job_id}_v1.txt"
-    transcript.write_text("Conteúdo de teste", encoding="utf-8")
+    transcript.write_text("Conteudo de teste", encoding="utf-8")
     job.attach_artifact(ArtifactType.TRANSCRIPT_TXT, transcript)
     return job
 

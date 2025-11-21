@@ -34,14 +34,14 @@ class RegisterDelivery:
     def execute(self, job_id: str) -> Path:
         job = self.job_repository.find_by_id(job_id)
         if not job:
-            raise ValueError(f"Job {job_id} não encontrado")
+            raise ValueError(f"Job {job_id} nao encontrado")
         if job.status != JobStatus.APPROVED:
             raise ValueError("Job precisa estar aprovado para gerar pacote de entrega.")
 
         artifacts: Iterable[Artifact] = self.artifact_repository.list_by_job(job.id)
         artifacts_list = list(artifacts)
         if not artifacts_list:
-            raise ValueError("Nenhum artefato disponível para empacotar.")
+            raise ValueError("Nenhum artefato disponivel para empacotar.")
 
         package_path = self.package_service.create_package(job, artifacts_list)
         self.delivery_logger.register(job, package_path)

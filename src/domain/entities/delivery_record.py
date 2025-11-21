@@ -11,7 +11,7 @@ def _utcnow() -> datetime:
 
 @dataclass(slots=True)
 class DeliveryRecord:
-    """Representa o registro de upload/entrega a serviços externos (GoTranscript/cliente)."""
+    """Representa o registro de upload/entrega a servicos externos (GoTranscript/cliente)."""
 
     job_id: str
     integration: str

@@ -11,7 +11,7 @@ from infrastructure.container import get_container
 def main() -> None:
     parser = argparse.ArgumentParser(description="Processar jobs do TranscribeFlow")
     parser.add_argument("--job-id", help="ID do job existente")
-    parser.add_argument("--file", help="Arquivo de áudio para criar um novo job")
+    parser.add_argument("--file", help="Arquivo de audio para criar um novo job")
     parser.add_argument("--profile", default="geral", help="Perfil editorial")
     parser.add_argument("--engine", default=None, help="Engine (openai/local)")
     args = parser.parse_args()
@@ -31,7 +31,7 @@ def main() -> None:
     if args.file:
         path = Path(args.file)
         if not path.exists():
-            raise SystemExit(f"Arquivo {path} não encontrado.")
+            raise SystemExit(f"Arquivo {path} nao encontrado.")
         job = job_controller.ingest_file(path, args.profile, engine)
         job_id = job.id
         print(f"Job criado: {job_id}")
@@ -40,7 +40,7 @@ def main() -> None:
         raise SystemExit("Informe --job-id ou --file.")
 
     job_controller.process_job(job_id)
-    print(f"Pipeline concluído para {job_id}")
+    print(f"Pipeline concluido para {job_id}")
 
 
 if __name__ == "__main__":

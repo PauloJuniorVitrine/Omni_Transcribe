@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 from typing import Dict, Tuple
@@ -55,7 +55,7 @@ async def require_active_session(
     session_id = request.cookies.get("session_id")
     session = session_service.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=401, detail="Não autenticado.")
+        raise HTTPException(status_code=401, detail="Nao autenticado.")
     if session_id:
         session["session_id"] = session_id
         csrf_token = session_service.ensure_csrf_token(session_id)
@@ -69,7 +69,7 @@ async def require_active_session(
                 if form_token:
                     token = form_token
             if not token or token != csrf_token:
-                raise HTTPException(status_code=403, detail="CSRF token inválido.")
+                raise HTTPException(status_code=403, detail="CSRF token invalido.")
     return session
 
 

@@ -24,18 +24,15 @@ class JsonLogFormatter(logging.Formatter):
 def configure_logging(level: str = "INFO") -> logging.Logger:
     global _configured
     logger = logging.getLogger("transcribeflow")
-    if _configured:
-        return logger
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(JsonLogFormatter())
-
+    # Always honor requested level, but avoid duplicating handlers.
     logger.setLevel(level)
-    logger.addHandler(handler)
-    logger.propagate = False
-
-    # Ensure root logger does not duplicate messages
     root = logging.getLogger()
     root.setLevel(level)
-    _configured = True
+
+    if not _configured:
+        handler = logging.StreamHandler()
+        handler.setFormatter(JsonLogFormatter())
+        logger.addHandler(handler)
+        logger.propagate = False
+        _configured = True
     return logger

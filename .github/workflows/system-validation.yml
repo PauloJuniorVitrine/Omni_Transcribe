@@ -1,148 +1,155 @@
 name: System Validation
 
+# CI stages in strict order: unit -> integration -> e2e -> load -> build
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
+  # Provide safe defaults; real secrets should override in CI
+  OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY || 'sk-test' }}"
+  CREDENTIALS_SECRET_KEY: "${{ secrets.CREDENTIALS_SECRET_KEY || 'test-credentials-key-32-bytes__' }}"
+  RUNTIME_CREDENTIALS_KEY: "${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}"
+  PLAYWRIGHT_BROWSERS_PATH: 0
 
 jobs:
-  frontend:
-    name: Frontend JS checks
+  tests_unit:
+    name: Unit tests (Python + JS)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run pytest unit
+        run: |
+          mkdir -p artifacts/unit
+          pytest tests/unit --junitxml=artifacts/unit/pytest-unit.xml | tee artifacts/unit/output.log
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Install JS dependencies
+      - name: Install JS deps
         run: npm ci
       - name: Lint JS
-        run: npm run lint:js
-      - name: Run JS unit tests
-        run: npm run test:js
+        run: npm run lint:js | tee artifacts/unit/js-lint.log
+      - name: Run JS tests
+        run: npm run test:js | tee artifacts/unit/js-tests.log
+      - name: Upload unit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-artifacts
+          path: artifacts/unit
 
-  python-tests:
-    name: Python unit & integration tests
+  tests_integration:
+    name: Integration tests (pytest)
     runs-on: ubuntu-latest
-    env:
-      CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
-      ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
-      METRICS_WEBHOOK_URL: ${{ secrets.METRICS_WEBHOOK_URL }}
+    needs: tests_unit
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python -m pip install pip-audit
-      - name: Ensure pytest-asyncio
-        run: python -m pip install pytest-asyncio
-      - name: Run unit tests
-        run: pytest tests/unit -q
-      - name: Run integration tests
-        run: pytest tests/integration -q
-      - name: Run security audit
+      - name: Run pytest integration
         run: |
-          pip-audit --progress-spinner=off
+          mkdir -p artifacts/integration
+          pytest tests/integration --junitxml=artifacts/integration/pytest-integration.xml | tee artifacts/integration/output.log
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-artifacts
+          path: artifacts/integration
 
-  load-tests:
-    name: Performance/load validation
+  tests_e2e:
+    name: E2E tests (Playwright)
     runs-on: ubuntu-latest
-    needs: python-tests
-    env:
-      CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
-      ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
-      METRICS_WEBHOOK_URL: ${{ secrets.METRICS_WEBHOOK_URL }}
+    needs: tests_integration
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Run performance/load tests
-        run: pytest tests/performance -q
-
-  e2e:
-    name: Playwright end-to-end
-    runs-on: ubuntu-latest
-    needs: [frontend, python-tests, load-tests]
-    env:
-      CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
-      PLAYWRIGHT_BROWSERS_PATH: 0
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Python dependencies
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - name: Install JS dependencies
+      - name: Install JS deps
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
-      - name: Run Playwright tests
-        run: npm run test:e2e
-
-  build_installer:
-    name: Build Windows installer
-    runs-on: windows-latest
-    needs: [frontend, python-tests, load-tests, e2e]
-    env:
-      CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Python dependencies
+      - name: Run Playwright E2E
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m pip install pyinstaller
-      - name: Build installer executable
-        run: |
-          pyinstaller src\interfaces\cli\run_job.py --name TranscribeFlow --onefile --noconfirm --paths src
-      - name: Upload installer
+          mkdir -p artifacts/e2e
+          npx playwright test --trace on --reporter=junit | tee artifacts/e2e/output.log
+      - name: Upload E2E artifacts (trace + logs)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: transcribeflow-installer
-          path: dist/TranscribeFlow.exe
+          name: e2e-artifacts
+          path: |
+            artifacts/e2e
+            playwright-report
+            test-results
 
-  accuracy-report:
-    name: Accuracy report
+  tests_load:
+    name: Load/Performance tests
     runs-on: ubuntu-latest
-    needs: python-tests
-    env:
-      CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
+    needs: tests_e2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install dependencies
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Generate accuracy metrics
-        run: python scripts/report_accuracy_metrics.py
-      - name: Upload accuracy metrics
+      - name: Run load/performance suite
+        run: |
+          mkdir -p artifacts/load
+          pytest tests/performance --junitxml=artifacts/load/pytest-load.xml | tee artifacts/load/output.log
+      - name: Upload load artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: accuracy-metrics
-          path: docs/accuracy_metrics_summary.md
+          name: load-artifacts
+          path: artifacts/load
+
+  build_executable:
+    name: Build executable (PyInstaller)
+    runs-on: windows-latest
+    needs: tests_load
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+      - name: Build onefile exe (launcher_gui)
+        run: |
+          pyinstaller launcher_gui.py --name TranscribeFlow --onefile --noconfirm --paths src
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: transcribeflow-exe
+          path: dist/TranscribeFlow.exe

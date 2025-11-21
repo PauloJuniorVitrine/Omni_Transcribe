@@ -30,7 +30,7 @@ class ReviewController:
         self.handle_review_use_case.execute(payload)
         job = self.job_repository.find_by_id(job_id)
         if not job:
-            raise ValueError(f"Job {job_id} não encontrado após a revisão.")
+            raise ValueError(f"Job {job_id} nao encontrado apos a revisao.")
         if approved and self.register_delivery_use_case:
             self.register_delivery_use_case.execute(job_id)
         return job

@@ -4,7 +4,7 @@ test("dashboard shows summary cards", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('[data-summary-field="total"]')).toHaveText("1");
   await expect(page.locator(".summary-card").first()).toBeVisible();
-  await expect(page.locator(".session-meta strong")).toContainText("Sessão");
+  await expect(page.locator(".session-meta strong")).toContainText("Sessao");
 });
 
 test("job detail loads and shows artifacts", async ({ page }) => {
@@ -46,7 +46,7 @@ test("template settings allow creating new template entries", async ({ page }) =
   await createForm.locator('input[name="template_id"]').fill(slug);
   await createForm.locator('input[name="name"]').fill("Playwright Template");
   await createForm.locator('input[name="locale"]').fill("en-US");
-  await createForm.locator('textarea[name="body"]').fill("{{header}}\\n\\nTest template for {{transcript}}");
+  await createForm.locator('textarea[name="body"]').fill("{{header}}\n\nTest template for {{transcript}}");
   await createForm.locator('[data-template-preview="create"]').click();
   await expect(page.locator('[data-template-preview-output="create"]')).toContainText("Arquivo original");
   await createForm.locator('button[type="submit"]').click();

@@ -14,7 +14,7 @@ else {
     pip install torch torchvision torchaudio
 }
 
-Write-Host "Instalando dependências do projeto..."
+Write-Host "Instalando dependencias do projeto..."
 pip install -r requirements.txt
 
-Write-Host "Ambiente local mais robusto para 'faster-whisper' pronto. Inicie o serviço com ASR_ENGINE=local."
+Write-Host "Ambiente local mais robusto para 'faster-whisper' pronto. Inicie o servico com ASR_ENGINE=local."

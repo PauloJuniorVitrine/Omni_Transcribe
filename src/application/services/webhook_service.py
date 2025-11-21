@@ -44,7 +44,7 @@ class WebhookService:
         start = time.perf_counter()
         secret = self._resolve_secret(integration)
         if not secret:
-            raise WebhookValidationError(f"Segredo não configurado para integração {integration}.")
+            raise WebhookValidationError(f"Segredo nao configurado para integracao {integration}.")
         if not payload:
             self._stats["rejected"] += 1
             raise WebhookValidationError("Payload vazio.")
@@ -55,7 +55,7 @@ class WebhookService:
         computed = hmac.new(secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
         if not hmac.compare_digest(computed, signature):
             self._stats["rejected"] += 1
-            raise WebhookValidationError("Assinatura inválida.")
+            raise WebhookValidationError("Assinatura invalida.")
         trace_id = uuid.uuid4().hex
         latency_ms = (time.perf_counter() - start) * 1000
         self._stats["accepted"] += 1
@@ -75,7 +75,7 @@ class WebhookService:
         try:
             ts = int(timestamp_header)
         except ValueError as exc:
-            raise WebhookValidationError("Timestamp inválido.") from exc
+            raise WebhookValidationError("Timestamp invalido.") from exc
         now = int(time.time())
         if abs(now - ts) > self.tolerance_seconds:
             raise WebhookValidationError("Timestamp fora da janela permitida.")

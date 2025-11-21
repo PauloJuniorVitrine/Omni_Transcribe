@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 <section>
@@ -19,19 +19,19 @@
     <li><strong>Status:</strong> {{ job.status.value }}</li>
     <li><strong>Engine:</strong> {{ job.engine.value }}</li>
     <li><strong>Idioma:</strong> {{ job.language or "-" }}</li>
-    <li><strong>Duração:</strong> {{ job.duration_sec or "-" }} s</li>
+    <li><strong>Duracao:</strong> {{ job.duration_sec or "-" }} s</li>
   </ul>
 </section>
 
 <section class="accuracy-panel">
-  <h3>Saúde da transcrição</h3>
+  <h3>Saude da transcricao</h3>
   <div class="accuracy-card" data-accuracy-status="{{ accuracy_snapshot.status or 'unknown' }}">
     <div class="accuracy-card__header">
       <span class="badge badge-{{ accuracy_snapshot.badge }}">{{ accuracy_snapshot.label }}</span>
       {% if accuracy_snapshot.updated_at %}
       <small>Atualizado em {{ accuracy_snapshot.updated_at }}</small>
       {% else %}
-      <small>Sem medições recentes</small>
+      <small>Sem medicoes recentes</small>
       {% endif %}
     </div>
     <dl class="accuracy-stats">
@@ -55,13 +55,13 @@
     <p class="accuracy-meta">
       Fonte base:
       {% if accuracy_snapshot.reference_source == "client_reference" %}
-      Referência aprovada do cliente
+      Referencia aprovada do cliente
       {% else %}
-      Saída do ASR
+      Saida do ASR
       {% endif %}
     </p>
     {% if accuracy_snapshot.requires_review %}
-    <p class="accuracy-alert">Este job foi marcado para revisão manual devido à acurácia abaixo da meta.</p>
+    <p class="accuracy-alert">Este job foi marcado para revisao manual devido a acuracia abaixo da meta.</p>
     {% endif %}
   </div>
 </section>
@@ -75,7 +75,7 @@
     data-ajax="true"
     data-loading-surface="template-selector"
     data-success-message="Formato atualizado."
-    data-error-message="N�o foi poss�vel atualizar o formato."
+    data-error-message="No foi possvel atualizar o formato."
     data-updated-target="template"
     data-template-form="true"
   >
@@ -94,7 +94,7 @@
       </select>
     </label>
     <p class="template-description" data-template-description>
-      {{ selected_template_description or "Selecione um formato para visualizar a descri��o." }}
+      {{ selected_template_description or "Selecione um formato para visualizar a descrio." }}
     </p>
     <small class="settings-meta" data-updated-label="template" data-template-updated>
       {{ template_updated_label }}
@@ -110,14 +110,14 @@
     data-ajax="true"
     data-loading-surface="template-selector"
     data-success-message="Idioma atualizado."
-    data-error-message="Não foi possível atualizar o idioma."
+    data-error-message="Nao foi possivel atualizar o idioma."
     data-updated-target="locale"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
     <label>
-      Idioma de saída
+      Idioma de saida
       <select name="delivery_locale">
-        <option value="">Automático ({{ job.language or "auto" }})</option>
+        <option value="">Automatico ({{ job.language or "auto" }})</option>
         {% for locale in available_locales %}
         <option value="{{ locale }}" {% if locale == selected_locale %}selected{% endif %}>
           {{ locale }}
@@ -167,7 +167,7 @@
       </div>
     </li>
     {% else %}
-    <li>Nenhum artefato disponível.</li>
+    <li>Nenhum artefato disponivel.</li>
     {% endfor %}
   </ul>
 </section>
@@ -186,7 +186,7 @@
   <h3>Eventos recentes</h3>
   <form class="filters" data-log-form>
     <label>
-      Nível
+      Nivel
       <select name="level" data-log-filter="level">
         <option value="">Todos</option>
         {% for level in log_levels %}
@@ -203,7 +203,7 @@
       <button type="button" class="btn btn-secondary" data-log-reset>Limpar</button>
     </div>
   </form>
-  <small class="filters-meta" data-logs-updated>Atualizado às {{ page_generated_label }}</small>
+  <small class="filters-meta" data-logs-updated>Atualizado as {{ page_generated_label }}</small>
   <div class="timeline-actions" data-log-controls hidden>
     <div class="buttons">
       <button type="button" class="btn btn-secondary" data-log-export="csv">Exportar CSV</button>
@@ -217,8 +217,8 @@
 </section>
 
 <section>
-  <h3>Transcrição (prévia)</h3>
-  <pre class="transcript">{{ transcript_preview or "Nenhum conteúdo disponível." }}</pre>
+  <h3>Transcricao (previa)</h3>
+  <pre class="transcript">{{ transcript_preview or "Nenhum conteudo disponivel." }}</pre>
 </section>
 
 <section class="review-panel" data-surface="review-panel">
@@ -226,11 +226,11 @@
     <div class="skeleton-line"></div>
     <div class="skeleton-line"></div>
   </div>
-  <h3>Revisão humana</h3>
+  <h3>Revisao humana</h3>
   <form
     method="post"
     action="/jobs/{{ job.id }}/review"
-    data-confirm="Confirmar envio da revisão?"
+    data-confirm="Confirmar envio da revisao?"
     data-loading-surface="review-panel"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
@@ -239,7 +239,7 @@
       <input type="text" name="reviewer" required />
     </label>
     <label>
-      Observações
+      Observacoes
       <textarea name="notes" rows="3"></textarea>
     </label>
     <div class="actions">
@@ -261,12 +261,12 @@
     data-confirm="Confirmar reprocessamento do job?"
     data-enhanced-process="true"
     data-process-endpoint="/api/jobs/{{ job.id }}/process"
-    data-process-success-label="Processamento assíncrono iniciado."
+    data-process-success-label="Processamento assincrono iniciado."
     data-process-error-label="Falha ao iniciar o processamento."
     data-loading-surface="job-actions"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
-    <p>Solicita o pipeline completo (ASR -> pós -> artefatos) com base nos dados atuais.</p>
+    <p>Solicita o pipeline completo (ASR -> pos -> artefatos) com base nos dados atuais.</p>
     <button type="submit" class="btn btn-primary" data-loading="Processando...">Iniciar processamento</button>
   </form>
   <small class="process-status" data-process-status>Pronto para solicitar reprocessamento.</small>

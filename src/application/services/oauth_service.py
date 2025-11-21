@@ -16,7 +16,7 @@ class OAuthService:
 
     def build_authorization_url(self, state: Optional[str] = None, scope: str = "openid email profile") -> Dict[str, str]:
         if not self.settings.oauth_authorize_url:
-            raise RuntimeError("OAuth não configurado.")
+            raise RuntimeError("OAuth nao configurado.")
         if not state:
             state = secrets.token_urlsafe(16)
         params = {
@@ -31,7 +31,7 @@ class OAuthService:
 
     def exchange_code(self, code: str) -> Dict[str, str]:
         if not self.settings.oauth_token_url:
-            raise RuntimeError("OAuth não configurado.")
+            raise RuntimeError("OAuth nao configurado.")
         payload = {
             "grant_type": "authorization_code",
             "code": code,

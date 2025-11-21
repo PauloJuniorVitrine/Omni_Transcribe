@@ -38,7 +38,7 @@ def main() -> int:
         if not _confirm_env("OPENAI_API_KEY"):
             missing.append("OPENAI_API_KEY")
         else:
-            hints.append("OPENAI_API_KEY definida via variável de ambiente.")
+            hints.append("OPENAI_API_KEY definida via variavel de ambiente.")
     else:
         ffmpeg = shutil.which("ffmpeg") or shutil.which("avconv")
         if ffmpeg:
@@ -52,12 +52,12 @@ def main() -> int:
         else:
             missing.append("CREDENTIALS_SECRET_KEY / RUNTIME_CREDENTIALS_KEY")
     else:
-        hints.append("Segredo criptográfico em variáveis de ambiente detectado.")
+        hints.append("Segredo criptografico em variaveis de ambiente detectado.")
 
     if missing:
-        _alert("Pré-requisitos ausentes:")
+        _alert("Pre-requisitos ausentes:")
         for key in missing:
-            description = REQUIRED_ENV.get(key, "Variável necessária.")
+            description = REQUIRED_ENV.get(key, "Variavel necessaria.")
             _alert(f"  - {key}: {description}")
         _alert(
             textwrap.dedent(
@@ -71,9 +71,9 @@ def main() -> int:
         )
         return 1
 
-    print("Pré-requisitos validados com sucesso.")
+    print("Pre-requisitos validados com sucesso.")
     for hint in hints:
-        print(f"  • {hint}")
+        print(f"   {hint}")
     return 0
 
 

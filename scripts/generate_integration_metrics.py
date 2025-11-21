@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Lê logs/metrics.log e gera relatório integration_metrics_X.md + observability_comparison_X.md.
+Le logs/metrics.log e gera relatorio integration_metrics_X.md + observability_comparison_X.md.
 """
 
 from __future__ import annotations
@@ -35,14 +35,14 @@ def write_file(path: Path, content: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Gera relatórios de métricas de integração.")
+    parser = argparse.ArgumentParser(description="Gera relatorios de metricas de integracao.")
     parser.add_argument("--exec-id", required=False)
     args = parser.parse_args()
     exec_id = args.exec_id or datetime.utcnow().strftime("%Y%m%dT%H%M%SZ_AUTOGEN")
     entries = load_entries()
     counter = Counter(entry["event"] for entry in entries)
-    rows = ["# Integration Metrics – EXEC_ID {exec}".format(exec=exec_id), ""]
-    rows.append("| Evento | Ocorrências | Última amostra |")
+    rows = ["# Integration Metrics  EXEC_ID {exec}".format(exec=exec_id), ""]
+    rows.append("| Evento | Ocorrencias | Ultima amostra |")
     rows.append("| --- | --- | --- |")
     for event, count in counter.items():
         latest = next(
@@ -52,13 +52,13 @@ def main() -> None:
         rows.append(f"| {event} | {count} | {latest} |")
     write_file(Path(f"docs/integration_metrics_{exec_id}.md"), "\n".join(rows))
 
-    comp = ["# Observability Comparison – EXEC_ID {exec}".format(exec=exec_id), ""]
+    comp = ["# Observability Comparison  EXEC_ID {exec}".format(exec=exec_id), ""]
     comp.append(
         "Baseado nos eventos coletados em `logs/metrics.log`. "
-        "Recomenda-se comparar com dados dos APMs externos assim que disponíveis."
+        "Recomenda-se comparar com dados dos APMs externos assim que disponiveis."
     )
     write_file(Path(f"docs/observability_comparison_{exec_id}.md"), "\n".join(comp))
-    print(f"Métricas geradas para {exec_id}.")
+    print(f"Metricas geradas para {exec_id}.")
 
 
 if __name__ == "__main__":
