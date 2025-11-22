@@ -16,7 +16,10 @@ from config.runtime_credentials import RuntimeCredentialStore
 from domain.entities.job import Job
 from domain.entities.log_entry import LogEntry
 from domain.entities.value_objects import ArtifactType, EngineType, JobStatus, LogLevel
+from domain.entities.transcription import TranscriptionResult, Segment, PostEditResult
 from application.services.job_log_service import JobLogService, JobLogQueryResult
+from application.services.accuracy_service import TranscriptionAccuracyGuard
+from domain.usecases.pipeline import ProcessJobPipeline
 import interfaces.http.app as http_app
 from interfaces.http.app import (
     app,
@@ -96,6 +99,9 @@ class StubIncidentLogRepository:
 class StubLogRepository:
     def __init__(self, entries: list[LogEntry]) -> None:
         self.entries = entries
+
+    def append(self, entry: LogEntry) -> None:
+        self.entries.append(entry)
 
     def list_by_job(self, job_id: str) -> list[LogEntry]:
         return [entry for entry in self.entries if entry.job_id == job_id]
@@ -246,6 +252,153 @@ def test_upload_creates_job_and_saves_file(tmp_path, monkeypatch):
     assert controller.job is not None
     assert controller.job.source_path.exists()
     assert controller.processed == ["job-upload"]
+
+    app.dependency_overrides.clear()
+
+
+def test_upload_auto_process_updates_accuracy_metadata(tmp_path, monkeypatch):
+    class StubJobControllerUpload:
+        def __init__(self) -> None:
+            self.job = None
+            self.processed: list[str] = []
+
+        def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
+            self.job = Job(
+                id="job-upload-acc",
+                source_path=path,
+                profile_id=profile_id,
+                engine=engine,
+                status=JobStatus.PENDING,
+            )
+            return self.job
+
+        def process_job(self, job_id: str) -> None:
+            if not self.job:
+                raise RuntimeError("no job")
+            self.job.metadata["accuracy_status"] = "needs_review"
+            self.processed.append(job_id)
+
+        def list_jobs(self, limit: int = 20):
+            return [self.job] if self.job else []
+
+    controller = StubJobControllerUpload()
+    app.dependency_overrides[get_job_controller_dep] = lambda: controller
+    _force_authentication()
+    _override_app_settings(monkeypatch, base_input_dir=tmp_path)
+
+    client = TestClient(app, follow_redirects=False)
+    files = {"file": ("audio.wav", b"data", "audio/wav")}
+    data = {"profile": "geral", "engine": "openai", "auto_process": "true", "csrf_token": "test-csrf"}
+    response = client.post("/jobs/upload", files=files, data=data)
+    assert response.status_code == 303
+    assert controller.job is not None
+    assert controller.job.metadata.get("accuracy_status") == "needs_review"
+    assert controller.processed == ["job-upload-acc"]
+
+    app.dependency_overrides.clear()
+
+
+def test_process_job_handles_accuracy_guard_error(tmp_path, monkeypatch):
+    job = Job(
+        id="job-acc-error",
+        source_path=tmp_path / "audio.wav",
+        profile_id="geral",
+        engine=EngineType.OPENAI,
+        status=JobStatus.AWAITING_REVIEW,
+    )
+    repository = StubJobRepository(job)
+    error_message = "accuracy-too-low"
+
+    class Controller(StubJobController):
+        def process_job(self, job_id: str) -> None:
+            raise RuntimeError(error_message)
+
+    job_controller = Controller(repository)
+    app.dependency_overrides[get_job_controller_dep] = lambda: job_controller
+    _force_authentication()
+    _override_app_settings(monkeypatch)
+
+    client = TestClient(app, raise_server_exceptions=False)
+    response = client.post(f"/api/jobs/{job.id}/process")
+    assert response.status_code == 400
+    assert error_message in response.json()["detail"]
+
+    app.dependency_overrides.clear()
+
+
+def test_api_process_job_runs_accuracy_guard(tmp_path, monkeypatch):
+    job = Job(
+        id="job-acc-guard",
+        source_path=tmp_path / "audio.wav",
+        profile_id="geral",
+        engine=EngineType.OPENAI,
+        status=JobStatus.AWAITING_REVIEW,
+    )
+
+    class GuardJobRepo(StubJobRepository):
+        def __init__(self, job: Job):
+            super().__init__(job)
+            self.updated: Job | None = None
+
+        def update(self, job: Job) -> Job:
+            self.updated = job
+            return super().update(job)
+
+    job_repo = GuardJobRepo(job)
+    log_repo = StubLogRepository([])
+
+    class AsrUseCase:
+        def execute(self, job_id: str) -> TranscriptionResult:
+            return TranscriptionResult(
+                text="audio original",
+                segments=[Segment(id=0, start=0.0, end=1.0, text="audio")],
+                language="pt",
+                duration_sec=1.0,
+                engine="openai",
+            )
+
+    class PostEditUseCase:
+        def execute(self, job_id: str, transcription: TranscriptionResult) -> PostEditResult:
+            return PostEditResult(text="texto divergente", segments=transcription.segments, flags=[], language="pt")
+
+    class ArtifactUseCase:
+        def execute(self, job_id: str, post_edit: PostEditResult):
+            return []
+
+    guard = TranscriptionAccuracyGuard(
+        job_repository=job_repo,
+        log_repository=log_repo,
+        threshold=0.99,
+        reference_loader=lambda _job: "referencia fiel totalmente diferente",
+    )
+    pipeline = ProcessJobPipeline(
+        asr_use_case=AsrUseCase(),
+        post_edit_use_case=PostEditUseCase(),
+        artifact_use_case=ArtifactUseCase(),
+        log_repository=log_repo,
+        retry_handler=None,
+        accuracy_guard=guard,
+    )
+
+    class MinimalController:
+        def __init__(self, pipeline):
+            self.pipeline_use_case = pipeline
+
+        def process_job(self, job_id: str) -> None:
+            pipeline.execute(job_id)
+
+    controller = MinimalController(pipeline)
+
+    app.dependency_overrides[get_job_controller_dep] = lambda: controller
+    app.dependency_overrides[require_active_session] = lambda: {"user": "tester", "session_id": "sess", "csrf_token": "t"}
+    _override_app_settings(monkeypatch)
+
+    client = TestClient(app)
+    response = client.post(f"/api/jobs/{job.id}/process")
+    assert response.status_code == 200, response.text
+    assert job_repo.updated is not None
+    assert job_repo.updated.metadata.get("accuracy_status") == "needs_review"
+    assert any(entry.event == "accuracy_evaluated" and entry.level == LogLevel.WARNING for entry in log_repo.entries)
 
     app.dependency_overrides.clear()
 
@@ -1865,7 +2018,7 @@ def test_webhook_rejects_invalid_signature(monkeypatch):
     timestamp = str(int(time.time()))
     response = client.post(
         "/webhooks/external",
-        data="{}",
+        content=b"{}",
         headers={
             "X-Signature": "invalid",
             "X-Integration-Id": "external",
@@ -1885,7 +2038,7 @@ def test_webhook_accepts_valid_signature(monkeypatch):
     timestamp = str(int(time.time()))
     response = client.post(
         "/webhooks/external",
-        data=payload,
+        content=payload,
         headers={
             "X-Signature": signature,
             "X-Integration-Id": "external",

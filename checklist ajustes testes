@@ -1,0 +1,35 @@
+Checklist de ajustes de testes (ordem por criticidade)
+
+1) Cobertura e arquitetura de testes Python
+- [feito] pytest-cov em unit/integration/performance com reports XML/HTML e term-missing; scripts/CI.
+- [feito] ProcessJobPipeline (sucesso + erro retry/non-retry/accuracy guard) e WhisperService chunking/cleanup.
+- [feito] PackageService (ZIP + storage) e DeliveryTemplateRegistry (default/localizado/render/cache).
+- [feito] OAuthService + SessionService + rotas protegidas (auth_routes; login/callback/browser via stub end-to-end).
+- [feito] Repositórios file-based (artifact/log/review), RejectedLogger, PII masker.
+- [feito] Adapters externos: GoTranscript, S3/Local storage, GoogleSheetsGateway.
+
+2) Fluxos integrais e jornadas reais
+- [feito] HTTP upload -> job criado (+auto_process) com verificação de artefatos/metadata (template/locale) e accuracy guard (upload + auto_process + erro do guard via API + guard acionado no pipeline HTTP).
+- [feito] Fluxo de erro do pipeline (falha pos-edit/artifacts/accuracy) exercitando RetryOrRejectJob com rejected logger em rotas/integração.
+- [feito] Download assinado via /artifacts (token válido/expirado/inválido) + rate-limit por sessão.
+- [feito] Watcher: chunking habilitado (fallback WAV sem pydub), skip/log para arquivos grandes, ingestão básica + trigger; depende de pydub/ffmpeg apenas para formatos não-WAV.
+
+3) Cobertura frontend/JS
+- [feito] collectCoverage no jest (src/interfaces/web/static/js/**/*.js -> artifacts/js-coverage) com ~95% linhas.
+- [feito] dashboard/global/jobs/settings/core cobertos (summary/incidents, accuracy, preview/logs/process/export, ajax/templates), incluindo cenários de erro e guards.
+- [feito] Playwright stub e2e cobrindo dashboard + fluxo de revisão/download via stub_server.
+
+4) Qualidade e falsos positivos
+- [pendente] Revisar remanescentes que só “não quebram”; adicionar assertivas de estado/efeito (arquivos, metadata).
+- [feito] Dados realistas e menor mock onde possível (áudio dummy, payloads coerentes) nos novos testes.
+
+5) Pipeline CI
+- [feito] Workflows publicam coverage XML/HTML (Python/JS) como artefatos.
+- [feito] Script helper `scripts/run_tests_with_coverage.ps1` para padronizar local/CI.
+
+6) Padrão de qualidade e abordagem de raciocínio
+- Sem testes genéricos; assertivas de estado/efeito/saída obrigatórias.
+- Usar cenários reais e mocks mínimos.
+- Nenhuma classe/jornada crítica sem teste; foco domain/application + E2E reais.
+- CoCoT/ToT/ReAct aplicados: justificar alvos, pensar cenários feliz/erro/borda, garantir que o teste falha se a lógica quebrar.
+- Não mudar regra de negócio para atender teste; bugs reais devem ser cobertos com teste após fixo.

@@ -13,8 +13,11 @@ body {
   font-family: var(--font-base);
   margin: 0;
   padding: 0;
-  background: var(--color-bg);
+  background: radial-gradient(120% 120% at 10% 20%, rgba(79, 70, 229, 0.18), transparent),
+    radial-gradient(140% 140% at 80% 10%, rgba(249, 115, 22, 0.12), transparent),
+    var(--color-bg);
   color: var(--color-text);
+  min-height: 100vh;
 }
 
 main {
@@ -25,14 +28,16 @@ main {
 }
 
 .hero {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: var(--gradient-hero);
   color: #fff;
   border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.75rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
   box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
 }
 
 .hero-body h1 {
@@ -194,6 +199,25 @@ header {
   color: var(--color-header-text);
   text-decoration: none;
   font-weight: 500;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+
+.main-nav a:hover {
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.main-nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
+}
+
+.main-nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 2px;
 }
 
 section {
@@ -428,6 +452,13 @@ section {
   padding: 1rem;
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-border);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(79, 70, 229, 0.35);
+  transform: translateY(-1px);
 }
 
 .summary-card {
@@ -436,6 +467,8 @@ section {
   padding: 1rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .summary-card p {
@@ -449,6 +482,12 @@ section {
   display: block;
   font-size: 1.75rem;
   margin-top: 0.25rem;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .filters {
@@ -575,7 +614,7 @@ form select {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding: 0.5rem 1rem;
+  padding: 0.55rem 1.05rem;
   border-radius: var(--radius-sm);
   border: none;
   background: var(--color-primary);
@@ -588,6 +627,11 @@ form select {
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
 }
 
 .btn-secondary {
@@ -937,6 +981,7 @@ button.loading {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  border: 1px solid var(--color-border);
 }
 
 .modal-header {
@@ -968,4 +1013,17 @@ button.loading {
   border-radius: var(--radius-sm);
   padding: 1rem;
   margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25);
+  border-color: var(--color-secondary);
 }

@@ -1,6 +1,7 @@
 name: System Validation
 
-# CI stages in strict order: unit -> integration -> e2e -> load -> build
+# CI stages in strict order:
+# 1) Unit -> 2) Integration -> 3) E2E -> 4) Load/Performance -> 5) Build EXE -> 6) Build Installer -> 7) Installer Smoke -> 8) Publish artifacts
 on:
   push:
     branches: [main, master]
@@ -16,11 +17,60 @@ env:
   RUNTIME_CREDENTIALS_KEY: "${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}"
   PLAYWRIGHT_BROWSERS_PATH: 0
   TEST_MODE: "1"
+  SKIP_RUNTIME_CREDENTIALS_VERIFY: "1"
+  VERSION: ${{ github.ref_name || format('ci-{0}', github.run_number) }}
 
 jobs:
+  validate_secrets:
+    name: Validate required secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check critical secrets are present
+        shell: bash
+        run: |
+          if [[ "${{ env.ALLOW_FAKE_SECRETS }}" == "1" ]]; then
+            echo "ALLOW_FAKE_SECRETS=1 set; skipping secret validation."
+            exit 0
+          fi
+          if [[ -z "${{ env.OPENAI_API_KEY }}" || "${{ env.OPENAI_API_KEY }}" == "sk-test" ]]; then
+            echo "OPENAI_API_KEY is missing or using placeholder."
+            exit 1
+          fi
+          if [[ -z "${{ env.CREDENTIALS_SECRET_KEY }}" || "${{ env.CREDENTIALS_SECRET_KEY }}" == "test-credentials-key-32-bytes__" ]]; then
+            echo "CREDENTIALS_SECRET_KEY is missing or using placeholder."
+            exit 1
+          fi
+          echo "Secrets look configured."
+
+  sast_and_secretscan:
+    name: Static analysis & secret scan
+    runs-on: ubuntu-latest
+    needs: validate_secrets
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python security (bandit)
+        uses: bandit-tool/bandit-action@v1
+        with:
+          bandit_args: "-r src -ll"
+      - name: Secret scan (trivy fs)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+          scanners: "secret"
+          exit-code: "1"
+      - name: JS lint security (eslint)
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm ci
+      - run: npx eslint src/interfaces/web/static/js --max-warnings=0
+
   tests_unit:
     name: Unit tests (Python + JS)
     runs-on: ubuntu-latest
+    needs: sast_and_secretscan
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,7 +83,12 @@ jobs:
       - name: Run pytest unit
         run: |
           mkdir -p artifacts/unit
-          pytest tests/unit --junitxml=artifacts/unit/pytest-unit.xml | tee artifacts/unit/output.log
+          pytest tests/unit \
+            --cov=src \
+            --cov-report=xml:artifacts/unit/coverage.xml \
+            --cov-report=html:artifacts/unit/htmlcov \
+            --cov-report=term-missing \
+            --junitxml=artifacts/unit/pytest-unit.xml | tee artifacts/unit/output.log
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -43,6 +98,11 @@ jobs:
         run: npm run lint:js | tee artifacts/unit/js-lint.log
       - name: Run JS tests
         run: npm run test:js | tee artifacts/unit/js-tests.log
+      - name: Generate OpenAPI TS client
+        run: npm run generate:openapi:ts | tee artifacts/unit/openapi-ts.log
+      - name: Verify OpenAPI snapshot
+        run: |
+          git diff --exit-code artifacts/openapi.json artifacts/openapi.d.ts || (echo "OpenAPI artifacts desatualizados. Rode npm run generate:openapi:ts e faça commit." && exit 1)
       - name: Upload unit artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,10 +110,60 @@ jobs:
           name: unit-artifacts
           path: artifacts/unit
 
+      - name: Upload JS coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-coverage
+          path: artifacts/js-coverage
+
+  contracts_api:
+    name: Contract tests (OpenAPI + Jest + Playwright smoke)
+    runs-on: ubuntu-latest
+    needs: tests_unit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Contract pytest (OpenAPI + negative cases)
+        run: |
+          mkdir -p artifacts/contracts
+          pytest tests/integration/test_openapi_contract.py tests/integration/test_http_contract_negative.py \
+            --junitxml=artifacts/contracts/pytest-contracts.xml | tee artifacts/contracts/output.log
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install JS deps
+        run: npm ci
+      - name: Generate OpenAPI artifacts
+        run: npm run generate:openapi:ts | tee artifacts/contracts/openapi-gen.log
+      - name: Type-check OpenAPI client
+        run: npm run typecheck:contracts | tee -a artifacts/contracts/openapi-gen.log
+      - name: Jest contract spec only
+        run: |
+          cross-env NODE_OPTIONS=--experimental-vm-modules npx jest tests/frontend/contracts.test.js --runInBand \
+            | tee artifacts/contracts/jest-contracts.log
+      - name: Playwright contract flows
+        run: |
+          npx playwright install --with-deps
+          npx playwright test tests/e2e/full_flow.spec.cjs tests/e2e/upload_flow.spec.cjs --reporter=junit \
+            | tee artifacts/contracts/playwright-contracts.log
+      - name: Upload contract artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-artifacts
+          path: artifacts/contracts
+
   tests_integration:
     name: Integration tests (pytest)
     runs-on: ubuntu-latest
-    needs: tests_unit
+    needs: contracts_api
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -66,7 +176,12 @@ jobs:
       - name: Run pytest integration
         run: |
           mkdir -p artifacts/integration
-          pytest tests/integration --junitxml=artifacts/integration/pytest-integration.xml | tee artifacts/integration/output.log
+          pytest tests/integration \
+            --cov=src \
+            --cov-report=xml:artifacts/integration/coverage.xml \
+            --cov-report=html:artifacts/integration/htmlcov \
+            --cov-report=term-missing \
+            --junitxml=artifacts/integration/pytest-integration.xml | tee artifacts/integration/output.log
       - name: Upload integration artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -124,7 +239,12 @@ jobs:
       - name: Run load/performance suite
         run: |
           mkdir -p artifacts/load
-          pytest tests/performance --junitxml=artifacts/load/pytest-load.xml | tee artifacts/load/output.log
+          pytest tests/performance \
+            --cov=src \
+            --cov-report=xml:artifacts/load/coverage.xml \
+            --cov-report=html:artifacts/load/htmlcov \
+            --cov-report=term-missing \
+            --junitxml=artifacts/load/pytest-load.xml | tee artifacts/load/output.log
       - name: Upload load artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -136,11 +256,21 @@ jobs:
     name: Build executable (PyInstaller)
     runs-on: windows-latest
     needs: tests_load
+    env:
+      SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 || '' }}
+      SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Compute version tag
+        shell: pwsh
+        run: |
+          $version = "${{ env.VERSION }}"
+          if ("${{ github.ref }}" -match "refs/tags/(.+)") { $version = $Matches[1] }
+          if (-not $version) { $version = "ci-${{ github.run_number }}" }
+          "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Install build deps
         run: |
           python -m pip install --upgrade pip
@@ -149,8 +279,128 @@ jobs:
       - name: Build onefile exe (launcher_gui)
         run: |
           pyinstaller launcher_gui.py --name TranscribeFlow --onefile --noconfirm --paths src
+      - name: Sign executable (optional)
+        if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
+        shell: pwsh
+        run: |
+          $pfxPath = "signing_cert.pfx"
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String("${{ env.SIGNING_CERT_BASE64 }}"))
+          & signtool sign /f $pfxPath /p "${{ env.SIGNING_CERT_PASSWORD }}" /tr http://timestamp.digicert.com /td sha256 /fd sha256 dist/TranscribeFlow.exe
+      - name: Versioned copy of executable
+        shell: pwsh
+        run: |
+          $dest = "dist/TranscribeFlow-${{ env.VERSION }}.exe"
+          Copy-Item "dist/TranscribeFlow.exe" $dest -Force
+      - name: Verify signature (optional)
+        if: ${{ env.SIGNING_CERT_BASE64 != '' && env.SIGNING_CERT_PASSWORD != '' }}
+        shell: pwsh
+        run: |
+          & signtool verify /pa /all dist/TranscribeFlow.exe
+          & signtool verify /pa /all "dist/TranscribeFlow-${{ env.VERSION }}.exe"
       - name: Upload executable artifact
         uses: actions/upload-artifact@v4
         with:
           name: transcribeflow-exe
-          path: dist/TranscribeFlow.exe
+          path: |
+            dist/TranscribeFlow.exe
+            dist/TranscribeFlow-${{ env.VERSION }}.exe
+
+  build_installer:
+    name: Build installer package
+    runs-on: windows-latest
+    needs: build_executable
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download executable
+        uses: actions/download-artifact@v4
+        with:
+          name: transcribeflow-exe
+          path: dist
+      - name: Prepare installer payload (stages exe)
+        run: |
+          New-Item -ItemType Directory -Path artifacts/installers -Force | Out-Null
+          pwsh ./scripts/prepare_installer.ps1 -SourceExe dist/TranscribeFlow.exe -Destination artifacts/installers
+          Copy-Item "dist/TranscribeFlow-${{ env.VERSION }}.exe" "artifacts/installers/TranscribeFlow-${{ env.VERSION }}.exe" -Force
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-staged
+          path: artifacts/installers
+
+  test_installer:
+    name: Installer smoke test
+    runs-on: windows-latest
+    needs: build_installer
+    env:
+      OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+      CREDENTIALS_SECRET_KEY: ${{ env.CREDENTIALS_SECRET_KEY }}
+      RUNTIME_CREDENTIALS_KEY: ${{ env.RUNTIME_CREDENTIALS_KEY }}
+      REQUIRE_SIGNATURE: "1"
+      REQUIRE_SIGNATURE: ${{ secrets.SIGNING_CERT_BASE64 != '' && secrets.SIGNING_CERT_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: installer-staged
+          path: artifacts/installers
+      - name: Stage installer where test script expects
+        run: |
+          New-Item -ItemType Directory -Path "$env:USERPROFILE\Downloads\transcribeflow-installer" -Force | Out-Null
+          Copy-Item -Path artifacts/installers/TranscribeFlow.exe -Destination "$env:USERPROFILE\Downloads\transcribeflow-installer" -Force
+          if (Test-Path artifacts/installers/TranscribeFlow-${{ env.VERSION }}.exe) {
+            Copy-Item -Path artifacts/installers/TranscribeFlow-${{ env.VERSION }}.exe -Destination "$env:USERPROFILE\Downloads\transcribeflow-installer" -Force
+          }
+      - name: Write installer env file for smoke test
+        run: |
+          @"
+OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
+CREDENTIALS_SECRET_KEY=${{ env.CREDENTIALS_SECRET_KEY }}
+RUNTIME_CREDENTIALS_KEY=${{ env.RUNTIME_CREDENTIALS_KEY }}
+"@ | Set-Content -Path scripts/install.env -Encoding UTF8
+      - name: Run installer smoke test
+        run: |
+          pwsh ./scripts/test_installer_flow.ps1 -EnvFile scripts/install.env -StartupTimeout 90
+      - name: Upload installer test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-test-artifacts
+          path: |
+            scripts/installer_test.log
+
+  publish_artifacts:
+    name: Publish aggregated artifacts
+    runs-on: ubuntu-latest
+    needs: test_installer
+    steps:
+      - name: Download all stage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/collected
+      - name: List collected artifacts
+        run: ls -R artifacts/collected
+      - name: Re-upload consolidated bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: artifacts/collected
+
+  release_gate:
+    name: Release approval gate
+    runs-on: ubuntu-latest
+    needs: publish_artifacts
+    environment: production
+    steps:
+      - name: Await manual approval / finalize release
+        run: |
+          echo "Release gate passed (configure environment protection for manual approval as needed)."
+      - name: Create GitHub release (draft)
+        if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/collected/**/*.*

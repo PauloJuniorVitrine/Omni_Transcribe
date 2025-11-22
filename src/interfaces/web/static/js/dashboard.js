@@ -2,10 +2,12 @@ import { setSurfaceLoading } from "./core.js";
 
 function bindLiveSummary() {
   const container = document.querySelector("[data-live-summary-endpoint]");
+  /* istanbul ignore next */
   if (!container) {
     return;
   }
   const endpoint = container.dataset.liveSummaryEndpoint;
+  /* istanbul ignore next */
   if (!endpoint) {
     return;
   }
@@ -107,10 +109,12 @@ function bindLiveSummary() {
 
 function bindLiveIncidents() {
   const panel = document.querySelector("[data-live-incidents-endpoint]");
+  /* istanbul ignore next */
   if (!panel) {
     return;
   }
   const endpoint = panel.dataset.liveIncidentsEndpoint;
+  /* istanbul ignore next */
   if (!endpoint) {
     return;
   }

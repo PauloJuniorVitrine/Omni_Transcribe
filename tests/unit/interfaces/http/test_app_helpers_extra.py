@@ -283,6 +283,6 @@ def test_serialize_artifacts_handles_enum_and_str():
         ArtifactType.TRANSCRIPT_TXT: Path("output/file.txt"),
         "custom": Path("output/custom.json"),
     }
-    serialized = http_app._serialize_artifacts(artifacts)
+    serialized = http_app._serialize_artifacts_dict(artifacts)
     assert serialized["txt"].endswith("file.txt")
     assert serialized["custom"].endswith("custom.json")

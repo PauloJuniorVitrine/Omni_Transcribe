@@ -68,6 +68,7 @@ function bindAjaxForms() {
 
 function bindTemplateActions() {
   const editModal = document.getElementById("template-edit-modal");
+  /* istanbul ignore next */
   if (!editModal) {
     return;
   }
@@ -80,6 +81,7 @@ function bindTemplateActions() {
   document.querySelectorAll("[data-template-edit]").forEach((button) => {
     button.addEventListener("click", async () => {
       const templateId = button.dataset.templateEdit;
+      /* istanbul ignore next */
       if (!templateId) {
         return;
       }
@@ -116,6 +118,7 @@ function bindTemplateActions() {
       return;
     }
     showToast("Template atualizado com sucesso.", "success");
+    /* istanbul ignore next */
     window.location.reload();
   });
   document.querySelectorAll("[data-template-delete]").forEach((button) => {

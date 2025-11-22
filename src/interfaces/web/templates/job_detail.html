@@ -138,15 +138,15 @@
 <section>
   <h3>Artefatos</h3>
   <ul class="artifact-list">
-    {% for artifact_type, path in artifacts.items() %}
-    {% set extension = path.lower().rsplit(".", 1)[-1] %}
+    {% for artifact in artifacts %}
+    {% set extension = artifact.extension %}
     {% set allow_preview = extension in ["txt", "srt", "json", "vtt", "csv"] %}
     <li>
       <div class="artifact-row">
-        <span class="artifact-label">{{ artifact_type | upper }}</span>
+        <span class="artifact-label">{{ artifact.type | upper }}</span>
         <div class="artifact-actions">
           <a
-            href="/artifacts?path={{ path | urlencode }}&job_id={{ job.id }}"
+            href="{{ artifact.url }}"
             target="_blank"
             class="btn btn-secondary btn-ghost"
           >
@@ -156,8 +156,8 @@
           <button
             type="button"
             class="btn btn-tertiary"
-            data-preview-url="/artifacts?path={{ path | urlencode }}&job_id={{ job.id }}"
-            data-preview-label="{{ artifact_type | upper }}"
+            data-preview-url="{{ artifact.url }}"
+            data-preview-label="{{ artifact.type | upper }}"
             data-preview-extension="{{ extension }}"
           >
             Visualizar
@@ -266,10 +266,10 @@
     data-loading-surface="job-actions"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
-    <p>Solicita o pipeline completo (ASR -> pos -> artefatos) com base nos dados atuais.</p>
+    <p>Solicita o pipeline completo (ASR → pós-edição → artefatos) com base nos dados atuais.</p>
     <button type="submit" class="btn btn-primary" data-loading="Processando...">Iniciar processamento</button>
   </form>
-  <small class="process-status" data-process-status>Pronto para solicitar reprocessamento.</small>
+  <small class="process-status" data-process-status>Pronto para solicitar reprocessamento. Usa o audio atual e aplica os perfis configurados.</small>
 </section>
 {% endif %}
 {% endblock %}

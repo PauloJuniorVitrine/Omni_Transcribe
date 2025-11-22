@@ -7,6 +7,8 @@ import hmac
 import io
 import logging
 import re
+import urllib.parse
+import os
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import deque
@@ -14,6 +16,7 @@ import time
 from typing import Any, Deque, Dict, List, Optional, TypedDict
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -29,8 +32,23 @@ from domain.entities.log_entry import LogEntry
 from domain.entities.value_objects import ArtifactType, EngineType, JobStatus, LogLevel
 from infrastructure.container import get_container
 from infrastructure.telemetry.metrics_logger import record_metric, notify_alert, load_entries, summarize_metrics
+from .schemas import (
+    DashboardSummaryResponse,
+    DashboardIncidentsResponse,
+    JobLogsResponse,
+)
 from . import auth_routes, webhook_routes
 from .dependencies import require_active_session
+from .schemas import (
+    DashboardSummaryResponse,
+    DashboardIncidentsResponse,
+    JobLogsResponse,
+    ProcessJobResponse,
+    TemplateRawResponse,
+    TemplatePreviewResponse,
+    UpdateTemplateResponse,
+    UpdateLocaleResponse,
+)
 
 app = FastAPI(title="TranscribeFlow")
 logger = logging.getLogger("transcribeflow.http")
@@ -56,6 +74,22 @@ _LOCALE_PATTERN = re.compile(r"^[a-z]{2}(?:[-_][a-z0-9]+)?$", re.IGNORECASE)
 _DOWNLOAD_RATE_WINDOW_SEC = 60
 _DOWNLOAD_RATE_LIMIT = 30
 _download_tracker: Dict[str, Deque[float]] = {}
+_API_RATE_WINDOW_SEC = 60
+_API_RATE_LIMIT = 60
+_api_rate_tracker: Dict[str, Deque[float]] = {}
+
+# Fail-fast: em produção não aceitamos CORS wildcard
+if _app_settings.app_env == "production" and "*" in (_app_settings.cors_allowed_origins or []):
+    raise RuntimeError("CORS_ALLOWED_ORIGINS não pode conter '*' em produção.")
+
+# CORS middleware (configurável via settings)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=getattr(_app_settings, "cors_allowed_origins", ["*"]),
+    allow_credentials=getattr(_app_settings, "cors_allow_credentials", False),
+    allow_methods=getattr(_app_settings, "cors_allowed_methods", ["*"]),
+    allow_headers=getattr(_app_settings, "cors_allowed_headers", ["*"]),
+)
 
 
 def _reload_template_registry() -> None:
@@ -70,6 +104,19 @@ def _get_template_registry() -> DeliveryTemplateRegistry:
 ALLOWED_DOWNLOAD_EXTENSIONS = {"txt", "srt", "vtt", "json", "zip"}
 ALLOWED_UPLOAD_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg"}
 ARTIFACT_TOKEN_TTL_MINUTES = 10
+
+
+def _sign_download(path: str, ttl_minutes: int = ARTIFACT_TOKEN_TTL_MINUTES) -> tuple[str, str]:
+    """
+    Constrói token HMAC + expiração para links de download de artefatos.
+    Usa o mesmo segredo aplicado na validação para evitar divergências.
+    """
+    secret = get_settings().webhook_secret.encode("utf-8")
+    expires_dt = datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)
+    expires = expires_dt.isoformat()
+    signature_payload = f"{path}:{expires}".encode("utf-8")
+    token = hmac.new(secret, signature_payload, hashlib.sha256).hexdigest()
+    return token, expires
 
 class FlashPayload(TypedDict):
     text: str
@@ -190,16 +237,64 @@ async def list_jobs(
         "csrf_token": (session or {}).get("csrf_token", ""),
         "accuracy_summary": accuracy_summary,
         "max_audio_size_mb": getattr(_app_settings, "max_audio_size_mb", 0),
+        "health_status": _health_snapshot(),
     }
     return templates.TemplateResponse(request, "jobs.html", context)
 
 
-@app.get("/api/dashboard/summary", response_class=JSONResponse)
+@app.get("/health", response_class=JSONResponse)
+async def healthcheck() -> JSONResponse:
+    """
+    Health endpoint com sinais básicos e probes externos opcionais.
+    """
+    settings = get_settings()
+    assets_ok = Path("src/interfaces/web/static").exists() and Path("src/interfaces/web/templates").exists()
+    external = {}
+    # Probes leves: evitam levantar exceção; apenas anotam estado
+    try:
+        external["asr_ready"] = bool(settings.openai_api_key)
+    except Exception:
+        external["asr_ready"] = False
+    try:
+        external["chat_ready"] = bool(settings.chatgpt_api_key or settings.openai_api_key)
+    except Exception:
+        external["chat_ready"] = False
+    try:
+        # Storage dir writeable
+        probe_path = Path(settings.base_output_dir) / ".health_probe"
+        probe_path.parent.mkdir(parents=True, exist_ok=True)
+        probe_path.write_text("ok", encoding="utf-8")
+        probe_path.unlink(missing_ok=True)
+        external["storage_ready"] = True
+    except Exception:
+        external["storage_ready"] = False
+
+    payload = {
+        "status": "ok",
+        "env": settings.app_env,
+        "chunking_mb": settings.openai_chunk_trigger_mb,
+        "max_audio_mb": settings.max_audio_size_mb,
+        "downloads_signature": _feature_flags_snapshot().get("downloads.signature_required", True),
+        "static_assets": assets_ok,
+        "external": external,
+    }
+    degraded = False
+    probe_openai = os.getenv("HEALTH_PROBE_OPENAI") == "1"
+    if probe_openai:
+        external["openai_probe"] = _probe_http(settings.openai_base_url or "", timeout_sec=2)
+        degraded = degraded or not external["openai_probe"]
+    degraded = degraded or not all(external.values())
+    payload["status"] = "degraded" if degraded else "ok"
+    return JSONResponse(payload, status_code=200 if not degraded else 206)
+
+
+@app.get("/api/dashboard/summary", response_class=JSONResponse, response_model=DashboardSummaryResponse)
 async def api_dashboard_summary(
     job_controller: JobController = Depends(get_job_controller_dep),
     limit: int = 100,
     _: dict | None = Depends(require_active_session),
 ) -> JSONResponse:
+    _enforce_api_rate("summary")
     jobs = job_controller.list_jobs(limit)
     summary = _compute_summary(jobs)
     accuracy_summary = _compute_accuracy_summary(jobs)
@@ -215,11 +310,12 @@ async def api_dashboard_summary(
     return JSONResponse(payload)
 
 
-@app.get("/api/dashboard/incidents", response_class=JSONResponse)
+@app.get("/api/dashboard/incidents", response_class=JSONResponse, response_model=DashboardIncidentsResponse)
 async def api_dashboard_incidents(
     limit: int = 5,
     _: dict | None = Depends(require_active_session),
 ) -> JSONResponse:
+    _enforce_api_rate("incidents")
     incidents = _get_recent_incidents(limit=limit)
     payload = {
         "items": incidents,
@@ -453,7 +549,7 @@ async def update_template_definition(
     return RedirectResponse("/settings/templates?flash=template-updated", status_code=303)
 
 
-@app.get("/settings/templates/{template_id}/raw")
+@app.get("/settings/templates/{template_id}/raw", response_model=TemplateRawResponse)
 async def get_template_raw(
     template_id: str,
     _: dict | None = Depends(require_active_session),
@@ -477,7 +573,7 @@ async def get_template_raw(
     )
 
 
-@app.post("/settings/templates/preview")
+@app.post("/settings/templates/preview", response_model=TemplatePreviewResponse)
 async def preview_template_body(
     body: str = Form(...),
     _: dict | None = Depends(require_active_session),
@@ -514,7 +610,7 @@ async def theme_preview(request: Request) -> HTMLResponse:
     )
 
 
-@app.post("/api/jobs/{job_id}/process")
+@app.post("/api/jobs/{job_id}/process", response_model=ProcessJobResponse)
 async def api_process_job(
     job_id: str,
     job_controller: JobController = Depends(get_job_controller_dep),
@@ -545,19 +641,32 @@ async def upload_job(
     suffix = Path(file.filename).suffix.lower()
     if suffix not in ALLOWED_UPLOAD_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Extensao de audio nao permitida.")
-    payload = await file.read()
-    if not payload:
-        raise HTTPException(status_code=400, detail="Arquivo vazio.")
     max_bytes = settings.max_audio_size_mb * 1024 * 1024
-    if len(payload) > max_bytes:
-        raise HTTPException(status_code=400, detail="Arquivo excede limite configurado.")
-
     target_dir = Path(settings.base_input_dir) / (profile or "geral")
     target_dir.mkdir(parents=True, exist_ok=True)
     target = target_dir / file.filename
     if target.exists():
         target = target_dir / f"{Path(file.filename).stem}_{int(time.time())}{suffix}"
-    target.write_bytes(payload)
+    total_read = 0
+    chunk_size = max(1024 * 1024, min(4 * 1024 * 1024, max_bytes // 4 or max_bytes))
+    try:
+        with target.open("wb") as dest:
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                total_read += len(chunk)
+                if total_read > max_bytes:
+                    dest.close()
+                    target.unlink(missing_ok=True)
+                    raise HTTPException(status_code=400, detail="Arquivo excede limite configurado.")
+                dest.write(chunk)
+    finally:
+        await file.close()
+
+    if total_read == 0:
+        target.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
 
     try:
         engine_value = EngineType(engine)
@@ -600,7 +709,7 @@ async def job_detail(
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
         raise HTTPException(status_code=404, detail="Job nao encontrado")
-    artifacts = _serialize_artifacts(job.output_paths)
+    artifacts = _serialize_artifacts(job.output_paths, job.id)
 
     transcript_preview = ""
     transcript_path = job.output_paths.get(ArtifactType.TRANSCRIPT_TXT)
@@ -668,7 +777,7 @@ async def job_detail(
     return templates.TemplateResponse(request, "job_detail.html", context)
 
 
-@app.post("/jobs/{job_id}/template")
+@app.post("/jobs/{job_id}/template", response_model=UpdateTemplateResponse)
 async def update_job_template(
     job_id: str,
     request: Request,
@@ -705,7 +814,7 @@ async def update_job_template(
     return RedirectResponse(url=f"/jobs/{job_id}?flash=template-updated", status_code=303)
 
 
-@app.post("/jobs/{job_id}/locale")
+@app.post("/jobs/{job_id}/locale", response_model=UpdateLocaleResponse)
 async def update_job_locale(
     job_id: str,
     request: Request,
@@ -739,7 +848,7 @@ async def update_job_locale(
     return RedirectResponse(url=f"/jobs/{job_id}?flash=template-updated", status_code=303)
 
 
-@app.get("/api/jobs/{job_id}/logs", response_class=JSONResponse)
+@app.get("/api/jobs/{job_id}/logs", response_class=JSONResponse, response_model=JobLogsResponse)
 async def api_job_logs(
     job_id: str,
     request: Request,
@@ -747,6 +856,7 @@ async def api_job_logs(
     log_service: JobLogService = Depends(get_job_log_service),
     _: dict | None = Depends(require_active_session),
 ) -> JSONResponse:
+    _enforce_api_rate(f"logs:{job_id}")
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
         raise HTTPException(status_code=404, detail="Job nao encontrado")
@@ -786,6 +896,7 @@ async def api_job_logs_export(
     log_service: JobLogService = Depends(get_job_log_service),
     _: dict | None = Depends(require_active_session),
 ) -> Response:
+    _enforce_api_rate(f"logs_export:{job_id}")
     job = job_controller.job_repository.find_by_id(job_id)  # type: ignore[attr-defined]
     if not job:
         raise HTTPException(status_code=404, detail="Job nao encontrado")
@@ -880,7 +991,36 @@ async def download_artifact(
     return FileResponse(file_path)
 
 
-def _serialize_artifacts(artifacts) -> Dict[str, str]:
+def _serialize_artifacts(artifacts, job_id: Optional[str] = None) -> List[Dict[str, str]]:
+    """
+    Retorna metadados de artefatos já com URL assinada para download seguro.
+    Codifica query params para evitar falhas de token por caracteres especiais.
+    """
+    serialized: List[Dict[str, str]] = []
+    for artifact_type, path in artifacts.items():
+        path_str = str(path)
+        token, expires = _sign_download(path_str)
+        encoded_path = urllib.parse.quote(path_str)
+        encoded_expires = urllib.parse.quote(expires)
+        url = f"/artifacts?path={encoded_path}&token={token}&expires={encoded_expires}"
+        if job_id:
+            url += f"&job_id={job_id}"
+        label = artifact_type.value if isinstance(artifact_type, ArtifactType) else str(artifact_type)
+        serialized.append(
+            {
+                "type": label,
+                "path": path_str,
+                "url": url,
+                "extension": Path(path_str).suffix.lower().lstrip("."),
+            }
+        )
+    return serialized
+
+
+def _serialize_artifacts_dict(artifacts) -> Dict[str, str]:
+    """
+    Compat helper: retorna dict simples para testes legados que esperam map artifact_type -> path.
+    """
     serialized: Dict[str, str] = {}
     for artifact_type, path in artifacts.items():
         if isinstance(artifact_type, ArtifactType):
@@ -939,6 +1079,19 @@ def _enforce_download_rate(session_id: Optional[str]) -> None:
         tracker.popleft()
     if len(tracker) >= _DOWNLOAD_RATE_LIMIT:
         raise HTTPException(status_code=429, detail="Limite de downloads excedido.")
+    tracker.append(now)
+
+
+def _enforce_api_rate(key: str) -> None:
+    # Não aplicar rate-limit em modo teste para não quebrar suites
+    if os.getenv("TEST_MODE") == "1":
+        return
+    tracker = _api_rate_tracker.setdefault(key, deque())
+    now = time.time()
+    while tracker and now - tracker[0] > _API_RATE_WINDOW_SEC:
+        tracker.popleft()
+    if len(tracker) >= _API_RATE_LIMIT:
+        raise HTTPException(status_code=429, detail="Limite de requisições excedido.")
     tracker.append(now)
 
 
@@ -1036,6 +1189,34 @@ def _get_recent_incidents(limit: int = 5) -> List[Dict[str, Any]]:
             }
         )
     return incidents
+
+
+def _health_snapshot() -> Dict[str, Any]:
+    try:
+        # Reusa lógica interna sem depender do endpoint async
+        settings = get_settings()
+        assets_ok = Path("src/interfaces/web/static").exists() and Path("src/interfaces/web/templates").exists()
+        external: Dict[str, object] = {}
+        external["asr_ready"] = bool(settings.openai_api_key)
+        external["chat_ready"] = bool(settings.chatgpt_api_key or settings.openai_api_key)
+        try:
+            probe_path = Path(settings.base_output_dir) / ".health_probe"
+            probe_path.parent.mkdir(parents=True, exist_ok=True)
+            probe_path.write_text("ok", encoding="utf-8")
+            probe_path.unlink(missing_ok=True)
+            external["storage_ready"] = True
+        except Exception:
+            external["storage_ready"] = False
+        if os.getenv("HEALTH_PROBE_OPENAI") == "1":
+            external["openai_probe"] = _probe_http(settings.openai_base_url or "", timeout_sec=2)
+        degraded = not all(val for val in external.values() if isinstance(val, bool))
+        return {
+            "status": "degraded" if degraded else "ok",
+            "external": external,
+            "static_assets": assets_ok,
+        }
+    except Exception:
+        return {"status": "unknown"}
 
 
 def _compose_accuracy_snapshot(job: Job) -> Dict[str, Any]:
@@ -1199,6 +1380,16 @@ def _render_template_body(body: str, context: Dict[str, str]) -> str:
         return context.get(key, "")
 
     return pattern.sub(replace, body.strip()).strip()
+
+
+def _probe_http(url: str, timeout_sec: int = 2) -> bool:
+    if not url:
+        return False
+    try:
+        resp = requests.get(url, timeout=timeout_sec)
+        return resp.status_code < 500
+    except Exception:
+        return False
 
 
 def _append_template_audit(action: str, template_id: str, metadata: Dict[str, Any] | None = None) -> None:

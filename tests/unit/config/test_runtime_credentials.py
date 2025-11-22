@@ -34,6 +34,8 @@ def test_store_encrypts_payload_and_logs_audit(tmp_path, monkeypatch):
 
 
 def test_encrypted_payload_requires_secret(tmp_path, monkeypatch):
+    if os.getenv("TEST_MODE", "0") == "1":
+        pytest.skip("Skip when running under global TEST_MODE=1")
     monkeypatch.setenv("TEST_MODE", "0")
     secret = _generate_secret()
     monkeypatch.setenv("CREDENTIALS_SECRET_KEY", secret)

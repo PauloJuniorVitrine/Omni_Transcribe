@@ -13,13 +13,18 @@
       <a class="btn btn-secondary" href="/settings/templates">Templates</a>
       <a class="btn btn-ghost" href="/ui/theme-preview">Tema</a>
     </div>
-    <div class="hero-meta">
-      <span class="pill">Aguardando: {{ summary.awaiting_review }}</span>
-      <span class="pill pill-muted">Aprovados: {{ summary.approved }}</span>
-      <span class="pill pill-warning">Falhas/Rejeitados: {{ summary.failed }}</span>
-      <span class="pill pill-info">Acuracia avaliada: {{ accuracy_summary.evaluated or 0 }}</span>
-    </div>
+  <div class="hero-meta">
+    <span class="pill">Aguardando: {{ summary.awaiting_review }}</span>
+    <span class="pill pill-muted">Aprovados: {{ summary.approved }}</span>
+    <span class="pill pill-warning">Falhas/Rejeitados: {{ summary.failed }}</span>
+    <span class="pill pill-info">Acuracia avaliada: {{ accuracy_summary.evaluated or 0 }}</span>
+    {% if health_status.status %}
+    <span class="pill {% if health_status.status == 'ok' %}pill-success{% elif health_status.status == 'degraded' %}pill-warning{% else %}pill-muted{% endif %}">
+      Saúde: {{ health_status.status | title }}
+    </span>
+    {% endif %}
   </div>
+</div>
   <div class="hero-stats">
     <div class="stat-block">
       <small>Total</small>
@@ -113,6 +118,11 @@
     </div>
     <div class="summary-meta">
       <small data-summary-updated>Atualizado no carregamento inicial</small>
+      {% if health_status.external %}
+      <small>
+        ASR: {{ 'OK' if health_status.external.asr_ready else 'OFF' }} · Chat: {{ 'OK' if health_status.external.chat_ready else 'OFF' }}{% if health_status.external.openai_probe is defined %} · API: {{ 'OK' if health_status.external.openai_probe else 'OFF' }}{% endif %}
+      </small>
+      {% endif %}
     </div>
     <div class="skeleton-grid skeleton-grid--compact" data-skeleton="summary-cards" hidden aria-hidden="true">
       <div class="skeleton-card"></div>
@@ -136,12 +146,19 @@
       enctype="multipart/form-data"
       data-loading-surface="jobs-feed"
       data-updated-label="upload"
+      aria-describedby="upload-help"
     >
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
       <div class="form-grid">
         <label>
           Arquivo de audio
-          <input type="file" name="file" accept=".wav,.mp3,.m4a,.aac,.flac,.ogg" required />
+          <input
+            type="file"
+            name="file"
+            accept=".wav,.mp3,.m4a,.aac,.flac,.ogg"
+            aria-describedby="upload-help"
+            required
+          />
         </label>
         <label>
           Perfil
@@ -164,6 +181,9 @@
           <span>Processar automaticamente apos criar</span>
         </label>
       </div>
+      <p class="filters-meta" id="upload-help">
+        Aceita WAV/MP3/M4A/AAC/FLAC/OGG. Limite atual: {{ max_audio_size_mb }} MB. Ative "processar" para disparar o pipeline apos o upload.
+      </p>
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Enviar e criar job</button>
       </div>

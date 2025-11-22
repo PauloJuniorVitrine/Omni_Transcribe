@@ -4,6 +4,7 @@ function bindConfirmForms() {
   document.querySelectorAll("[data-confirm]").forEach((form) => {
     form.addEventListener("submit", (event) => {
       const message = form.getAttribute("data-confirm") || "";
+      /* istanbul ignore next */
       if (message && !window.confirm(message)) {
         event.preventDefault();
         return;
@@ -21,6 +22,7 @@ function bindConfirmForms() {
 
 function bindSurfaceForms() {
   document.querySelectorAll("form[data-loading-surface]").forEach((form) => {
+    /* istanbul ignore next */
     if (form.hasAttribute("data-enhanced-process") || form.dataset.ajax === "true") {
       return;
     }

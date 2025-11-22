@@ -8,8 +8,11 @@
     "test": "tests"
   },
   "scripts": {
+    "generate:openapi": "python scripts/generate_openapi_schema.py",
+    "generate:openapi:ts": "npm run generate:openapi && npx --yes openapi-typescript artifacts/openapi.json -o artifacts/openapi.d.ts",
+    "typecheck:contracts": "npm run generate:openapi:ts && npx tsc --project tsconfig.contracts.json --noEmit",
     "lint:js": "eslint src/interfaces/web/static/js",
-    "test:js": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:js": "npm run generate:openapi && cross-env NODE_OPTIONS=--experimental-vm-modules jest",
     "test:e2e": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test"
   },
   "keywords": [],
@@ -24,6 +27,7 @@
     "eslint": "^9.39.1",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
   }
 }

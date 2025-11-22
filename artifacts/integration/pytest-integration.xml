@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="1" tests="71" time="9.725" timestamp="2025-11-21T16:35:48.973397-03:00" hostname="DESKTOP-PBQ7OGO"><testcase classname="tests.integration.test_cli_run_job" name="test_cli_run_job_processes_file" time="0.993" /><testcase classname="tests.integration.test_faster_whisper_adapter" name="test_faster_whisper_client" time="0.005" /><testcase classname="tests.integration.test_http_api" name="test_http_routes_list_detail_review_and_artifact" time="0.282" /><testcase classname="tests.integration.test_http_api" name="test_ui_process_job_sets_flash" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_ui_process_job_handles_failure" time="0.014" /><testcase classname="tests.integration.test_http_api" name="test_upload_creates_job_and_saves_file" time="0.015" /><testcase classname="tests.integration.test_http_api" name="test_dashboard_summary_api_returns_counts" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_dashboard_incidents_api_returns_latest_entries" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_returns_filtered_entries" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_export_handles_formats" time="0.021" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_requires_session" time="0.014" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_returns_404_for_missing_job" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_api_telemetry_metrics_returns_entries" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_api_settings_page_allows_updates" time="0.032" /><testcase classname="tests.integration.test_http_api" name="test_api_settings_page_respects_feature_flag" time="0.009" /><testcase classname="tests.integration.test_http_api" name="test_api_settings_update_chatgpt_json" time="0.683" /><testcase classname="tests.integration.test_http_api" name="test_api_settings_update_invalid_target" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_update_job_template_returns_json_payload" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_update_job_locale_clears_when_empty" time="0.013" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_invalid_token_returns_error" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_job_template_update_endpoint" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_template_settings_page_and_creation" time="0.067" /><testcase classname="tests.integration.test_http_api" name="test_job_detail_renders_accuracy_and_templates" time="0.019" /><testcase classname="tests.integration.test_http_api" name="test_job_detail_returns_404_when_missing" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_export_missing_job" time="0.009" /><testcase classname="tests.integration.test_http_api" name="test_api_job_logs_export_invalid_format" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_job_detail_handles_profile_loader_failure" time="0.015" /><testcase classname="tests.integration.test_http_api" name="test_template_crud_validations" time="0.037" /><testcase classname="tests.integration.test_http_api" name="test_template_creation_redirects_without_json" time="0.014" /><testcase classname="tests.integration.test_http_api" name="test_template_update_redirects_without_json" time="0.016" /><testcase classname="tests.integration.test_http_api" name="test_template_creation_requires_body" time="0.013" /><testcase classname="tests.integration.test_http_api" name="test_template_update_returns_json" time="0.016" /><testcase classname="tests.integration.test_http_api" name="test_job_detail_handles_missing_template_description" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_template_update_requires_body" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_template_raw_and_preview" time="0.018" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_returns_json_error" time="0.871" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_html_redirect" time="0.016" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_rate_limit_returns_429" time="0.027" /><testcase classname="tests.integration.test_http_api" name="test_update_job_template_accepts_json" time="0.015" /><testcase classname="tests.integration.test_http_api" name="test_update_job_template_redirect" time="0.016" /><testcase classname="tests.integration.test_http_api" name="test_update_job_template_missing_job" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_update_job_template_without_registry_returns_500" time="0.013" /><testcase classname="tests.integration.test_http_api" name="test_update_job_locale_redirect" time="0.010" /><testcase classname="tests.integration.test_http_api" name="test_api_process_job_handles_exception" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_requires_token" time="0.013" /><testcase classname="tests.integration.test_http_api" name="test_artifact_download_invalid_expires" time="0.013" /><testcase classname="tests.integration.test_http_api" name="test_update_job_locale_missing_job" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_http_review_submission" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_http_request_rejected_when_exceeding_limit" time="0.008" /><testcase classname="tests.integration.test_http_api" name="test_download_rejects_unsupported_extension" time="0.014" /><testcase classname="tests.integration.test_http_api" name="test_api_dashboard_summary_includes_accuracy" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_download_rate_limit_enforced" time="0.020" /><testcase classname="tests.integration.test_http_api" name="test_auth_login_generates_state" time="0.009" /><testcase classname="tests.integration.test_http_api" name="test_auth_callback_exchanges_code" time="0.027" /><testcase classname="tests.integration.test_http_api" name="test_auth_login_browser_redirects" time="0.008" /><testcase classname="tests.integration.test_http_api" name="test_ui_process_job_generates_flash" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_theme_preview_route" time="0.077" /><testcase classname="tests.integration.test_http_api" name="test_webhook_rejects_invalid_signature" time="0.012" /><testcase classname="tests.integration.test_http_api" name="test_webhook_accepts_valid_signature" time="0.011" /><testcase classname="tests.integration.test_http_api" name="test_routes_require_auth_without_session" time="0.751" /><testcase classname="tests.integration.test_oauth_real_flow" name="test_oauth_real_endpoints_guard" time="0.001"><skipped type="pytest.skip" message="Requires real OAuth endpoints; left as guard to ensure flow wiring works when configured.">C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\tests\integration\test_oauth_real_flow.py:21: Requires real OAuth endpoints; left as guard to ensure flow wiring works when configured.</skipped></testcase><testcase classname="tests.integration.test_openai_adapters" name="test_openai_whisper_client_builds_request" time="0.007" /><testcase classname="tests.integration.test_openai_adapters" name="test_openai_chat_client_builds_payload" time="0.003" /><testcase classname="tests.integration.test_pipeline_and_review" name="test_pipeline_generates_artifacts_and_updates_job" time="0.054" /><testcase classname="tests.integration.test_pipeline_and_review" name="test_review_controller_approves_and_creates_package" time="0.082" /><testcase classname="tests.integration.test_pipeline_and_review" name="test_pipeline_failure_creates_rejected_log" time="0.016" /><testcase classname="tests.integration.test_pipeline_and_review" name="test_pipeline_artifact_failure_marks_stage" time="0.016" /><testcase classname="tests.integration.test_upload_metadata_template_locale" name="test_upload_sets_template_and_locale" time="0.142"><failure message="KeyError: 'custom'">tmp_path = WindowsPath('C:/Users/User/AppData/Local/Temp/pytest-of-User/pytest-351/test_upload_sets_template_and_0')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x000001D21A3A9E80&gt;
+
+    def test_upload_sets_template_and_locale(tmp_path, monkeypatch):
+        app.dependency_overrides[require_active_session] = lambda: {}
+        monkeypatch.chdir(tmp_path)
+        from config import reload_settings
+    
+        os.environ["OPENAI_API_KEY"] = "test-key"
+        os.environ["BASE_INPUT_DIR"] = str(tmp_path / "inbox")
+        os.environ["BASE_OUTPUT_DIR"] = str(tmp_path / "output")
+        os.environ["BASE_PROCESSING_DIR"] = str(tmp_path / "processing")
+        os.environ["BASE_BACKUP_DIR"] = str(tmp_path / "backup")
+        os.environ["BASE_REJECTED_DIR"] = str(tmp_path / "rejected")
+        os.environ["CSV_LOG_PATH"] = str(tmp_path / "output" / "log.csv")
+        reload_settings()
+        settings = get_settings()
+        profiles_dir = tmp_path / "profiles"
+        profiles_dir.mkdir(parents=True, exist_ok=True)
+        # Write profile with delivery_template/default_locale metadata
+        (profiles_dir / "geral.prompt.txt").write_text(
+            """---
+    id: geral
+    delivery_template: custom
+    default_locale: pt-BR
+    ---
+    Prompt""",
+            encoding="utf-8",
+        )
+        # minimal template required for artifact builder wiring
+        templates_dir = profiles_dir / "templates"
+        templates_dir.mkdir(parents=True, exist_ok=True)
+        (templates_dir / "custom.template.txt").write_text("---\nid: custom\n---\n{{transcript}}", encoding="utf-8")
+        settings.ensure_runtime_directories()
+    
+        from infrastructure.container.service_container import ServiceContainer
+    
+        get_container._instance = ServiceContainer(settings=settings)  # type: ignore[attr-defined]
+    
+        client = TestClient(app)
+        audio = tmp_path / "inbox" / "geral" / "audio.wav"
+        audio.parent.mkdir(parents=True, exist_ok=True)
+        audio.write_bytes(b"RIFF0000")
+        files = {"file": ("audio.wav", audio.read_bytes(), "audio/wav")}
+        data = {"profile": "geral", "engine": EngineType.OPENAI.value, "auto_process": "false"}
+    
+&gt;       resp = client.post("/jobs/upload", files=files, data=data, headers={"accept": "application/json"})
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\tests\integration\test_upload_metadata_template_locale.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\testclient.py:552: in post
+    return super().post(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\testclient.py:451: in request
+    return super().request(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\testclient.py:354: in handle_request
+    raise exc
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\testclient.py:351: in handle_request
+    portal.call(self.app, scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\anyio\from_thread.py:321: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\anyio\from_thread.py:252: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\applications.py:1134: in __call__
+    await super().__call__(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\applications.py:113: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py:191: in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+C:\Python314\Lib\contextlib.py:162: in __exit__
+    self.gen.throw(value)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\_utils.py:85: in collapse_excgroups
+    raise exc
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py:193: in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\src\interfaces\http\app.py:119: in enforce_request_size
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py:168: in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\base.py:144: in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py:716: in __call__
+    await self.middleware_stack(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py:736: in app
+    await route.handle(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\routing.py:290: in handle
+    await self.app(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:125: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:111: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:391: in app
+    raw_response = await run_endpoint_function(
+C:\Users\User\AppData\Roaming\Python\Python314\site-packages\fastapi\routing.py:290: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\src\interfaces\http\app.py:639: in job_detail
+    selected_template_description = template_registry.get(selected_template_id).description
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;application.services.delivery_template_service.DeliveryTemplateRegistry object at 0x000001D21A1FA4A0&gt;
+template_id = 'custom'
+
+    def get(self, template_id: Optional[str]) -&gt; DeliveryTemplate:
+        candidate = template_id or self.default_template_id
+        if candidate not in self._base_templates:
+            path = self.base_dir / f"{candidate}.template.txt"
+            if not path.exists():
+                path = self.base_dir / f"{self.default_template_id}.template.txt"
+            self._load_template(path)
+&gt;       return self._base_templates[candidate]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'custom'
+
+C:\Users\User\Desktop\Nova pasta\PROJETOS\Omni Transcribe\src\application\services\delivery_template_service.py:52: KeyError</failure></testcase><testcase classname="tests.integration.test_watcher" name="test_watcher_handles_new_audio" time="0.007" /><testcase classname="tests.integration.test_watcher" name="test_watcher_skips_files_exceeding_limit" time="0.004" /><testcase classname="tests.integration.test_watcher" name="test_watcher_smoke_pipeline" time="0.579" /></testsuite></testsuites>

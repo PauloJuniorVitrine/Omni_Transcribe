@@ -23,7 +23,11 @@
 - `CREDENTIALS_SECRET_KEY` (obrigatoria para runtime_credentials)
 - `OPENAI_API_KEY` (usada por Whisper/ChatGPT)
 - `RUNTIME_CREDENTIALS_KEY` (compatibilidade com cofre)
-- Pastas: BASE_INPUT_DIR, BASE_OUTPUT_DIR, BASE_PROCESSING_DIR
+- Pastas: BASE_INPUT_DIR, BASE_OUTPUT_DIR, BASE_PROCESSING_DIR, BASE_BACKUP_DIR, BASE_REJECTED_DIR, CSV_LOG_PATH
+- Limites/chunking: MAX_AUDIO_SIZE_MB, MAX_REQUEST_BODY_MB, OPENAI_CHUNK_TRIGGER_MB, OPENAI_CHUNK_DURATION_SEC
+- Outros: ACCURACY_THRESHOLD, SESSION_TTL_MINUTES, ALLOWED_DOWNLOAD_EXTENSIONS
+- CORS: CORS_ALLOWED_ORIGINS (lista), CORS_ALLOW_CREDENTIALS (bool), CORS_ALLOWED_METHODS, CORS_ALLOWED_HEADERS. Em produção, use origens explícitas; por padrão aceita todos.
+  - Guard: se `APP_ENV=production` e `CORS_ALLOWED_ORIGINS` contém `*`, a app falha no start.
 
 ## Testes
 - Unit/integracao: `pytest`
@@ -31,6 +35,7 @@
 - E2E (Playwright): `npm run test:e2e` (requer `npx playwright install --with-deps`)
 - Lint JS: `npm run lint:js`
 - Carga leve (sugestao): marque testes com `-m load` caso adicione cenarios de paralelismo de jobs.
+- Contratos/tipos: `npm run typecheck:contracts` gera OpenAPI + cliente TS e valida tipos usados pelo frontend.
 
 ## Build opcional (.exe)
 - Exemplo de bundle: `pyinstaller --onefile --name TranscribeFlow launcher_gui.py`

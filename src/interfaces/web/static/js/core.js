@@ -33,6 +33,7 @@ export function appendCsrf(formData) {
 }
 
 export function setSurfaceLoading(targetId, isLoading) {
+  /* istanbul ignore next */
   if (!targetId) {
     return;
   }

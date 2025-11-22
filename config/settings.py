@@ -59,8 +59,8 @@ class Settings(BaseSettings):
 
     # Watcher
     watcher_poll_interval: int = Field(default=5, alias="WATCHER_POLL_INTERVAL")
-    max_audio_size_mb: int = Field(default=8192, alias="MAX_AUDIO_SIZE_MB")
-    max_request_body_mb: int = Field(default=200, alias="MAX_REQUEST_BODY_MB")
+    max_audio_size_mb: int = Field(default=12288, alias="MAX_AUDIO_SIZE_MB")  # ~12 GB headroom
+    max_request_body_mb: int = Field(default=2048, alias="MAX_REQUEST_BODY_MB")  # 2 GB uploads via GUI
     openai_chunk_trigger_mb: int = Field(default=200, alias="OPENAI_CHUNK_TRIGGER_MB")
     openai_chunk_duration_sec: int = Field(default=900, alias="OPENAI_CHUNK_DURATION_SEC")
     allowed_download_extensions: List[str] = Field(
@@ -82,6 +82,10 @@ class Settings(BaseSettings):
     webhook_signature_tolerance_sec: int = Field(default=300, alias="WEBHOOK_SIGNATURE_TOLERANCE_SEC")
     session_ttl_minutes: int = Field(default=720, alias="SESSION_TTL_MINUTES")
     accuracy_threshold: float = Field(default=0.99, alias="ACCURACY_THRESHOLD")
+    cors_allowed_origins: List[str] = Field(default_factory=lambda: ["*"], alias="CORS_ALLOWED_ORIGINS")
+    cors_allow_credentials: bool = Field(default=False, alias="CORS_ALLOW_CREDENTIALS")
+    cors_allowed_methods: List[str] = Field(default_factory=lambda: ["*"], alias="CORS_ALLOWED_METHODS")
+    cors_allowed_headers: List[str] = Field(default_factory=lambda: ["*"], alias="CORS_ALLOWED_HEADERS")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

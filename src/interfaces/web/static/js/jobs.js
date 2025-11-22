@@ -1,3 +1,4 @@
+ï»¿
 import { setSurfaceLoading, showToast, updateLabelState, withCsrf } from "./core.js";
 
 function bindArtifactPreview() {
@@ -38,12 +39,12 @@ function bindArtifactPreview() {
     button.addEventListener("click", async () => {
       const url = button.dataset.previewUrl;
       const extension = (button.dataset.previewExtension || "").toLowerCase();
-      const label = button.dataset.previewLabel || "Pré-visualização";
+      const label = button.dataset.previewLabel || "Pre-visualizacao";
       if (!url) {
         return;
       }
       if (!["txt", "srt", "json", "vtt", "csv"].includes(extension)) {
-        showToast("Prévia não disponível para este formato.", "warning");
+        showToast("Previa nao disponivel para este formato.", "warning");
         return;
       }
       lastFocusedElement = document.activeElement;
@@ -58,10 +59,10 @@ function bindArtifactPreview() {
           throw new Error("download-failed");
         }
         const text = await response.text();
-        modalBody.textContent = text.trim() || "Sem conteúdo para exibir.";
+        modalBody.textContent = text.trim() || "Sem conteudo para exibir.";
       } catch (_error) {
         closeModal();
-        showToast("Não foi possível carregar o artefato.", "error");
+        showToast("Nao foi possivel carregar o artefato.", "error");
       }
     });
   });
@@ -83,7 +84,7 @@ function bindProcessActions() {
       let statusEl =
         form.closest("section")?.querySelector(statusSelector) ||
         document.querySelector(statusSelector);
-      const submitButton = form.querySelector("[type=\"submit\"]");
+      const submitButton = form.querySelector('[type="submit"]');
       if (statusEl) {
         statusEl.textContent = "Solicitando processamento...";
         statusEl.dataset.state = "loading";
@@ -104,9 +105,9 @@ function bindProcessActions() {
         }
         await response.json().catch(() => ({}));
         const successMessage =
-          form.dataset.processSuccessLabel || "Processamento assíncrono iniciado.";
+          form.dataset.processSuccessLabel || "Processamento assincrono iniciado.";
         const timestamp = new Date().toLocaleTimeString("pt-BR", { hour12: false });
-        showToast(successMessage, "success", { title: "Pipeline em execução" });
+        showToast(successMessage, "success", { title: "Pipeline em execucao" });
         if (statusEl) {
           statusEl.textContent = `${successMessage} (${timestamp})`;
           statusEl.dataset.state = "success";
@@ -152,7 +153,7 @@ function bindTemplateSelector() {
     }
     const option = select.selectedOptions[0];
     if (option) {
-      descriptionEl.textContent = option.dataset.description || "Sem descri??o.";
+      descriptionEl.textContent = option.dataset.description || "Sem descricao.";
     }
   };
   select.addEventListener("change", updateDescription);
@@ -241,10 +242,10 @@ function bindJobLogs() {
       currentPage = payload.page;
       renderList(entries, append);
       const labelText = payload.generated_at
-        ? `Atualizado às ${new Date(payload.generated_at).toLocaleTimeString("pt-BR", {
+        ? `Atualizado as ${new Date(payload.generated_at).toLocaleTimeString("pt-BR", {
             hour12: false,
           })}`
-        : "Atualização concluída";
+        : "Atualizacao concluida";
       refreshStatus(labelText, "success");
       if (controls) {
         controls.hidden = false;
@@ -254,7 +255,7 @@ function bindJobLogs() {
       }
     } catch (_error) {
       refreshStatus("Falha ao atualizar logs", "error");
-      showToast("Não foi possível carregar os eventos.", "error");
+      showToast("Nao foi possivel carregar os eventos.", "error");
     } finally {
       setSurfaceLoading("logs-timeline", false);
     }
@@ -299,6 +300,3 @@ function bindJobLogs() {
 
   fetchLogs(1);
 }
-
-
-

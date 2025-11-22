@@ -1,6 +1,7 @@
 Param(
     [string]$EnvFile = 'scripts/install.env',
-    [int]$StartupTimeout = 60
+    [int]$StartupTimeout = 60,
+    [switch]$RequireSignature = $false
 )
 
 function Import-EnvFile {
@@ -20,6 +21,22 @@ function Import-EnvFile {
         }
     }
     return $values
+}
+
+function Assert-SignatureIfPresent {
+    param(
+        [string]$Path,
+        [bool]$Required = $false
+    )
+    if (-not (Test-Path $Path)) {
+        throw "Arquivo '$Path' nao encontrado para validacao de assinatura."
+    }
+    $sig = Get-AuthenticodeSignature -FilePath $Path
+    if ($Required -or $sig.Status -ne 'NotSigned') {
+        if ($sig.Status -ne 'Valid') {
+            throw "Assinatura invalida ou ausente em '$Path'. Status: $($sig.Status)"
+        }
+    }
 }
 
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -68,6 +85,20 @@ if (-not $installerDir) {
     exit 1
 }
 $installerDir = $installerDir.Path
+
+$requireSignature = $RequireSignature -or ($env:REQUIRE_SIGNATURE -eq '1' -or $env:REQUIRE_SIGNATURE -eq 'true')
+
+$primaryExe = Join-Path $installerDir 'TranscribeFlow.exe'
+try {
+    Assert-SignatureIfPresent -Path $primaryExe -Required:$requireSignature
+    $versioned = Get-ChildItem -Path $installerDir -Filter 'TranscribeFlow-*.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($versioned) {
+        Assert-SignatureIfPresent -Path $versioned.FullName -Required:$requireSignature
+    }
+} catch {
+    Write-Error $_.Exception.Message
+    exit 1
+}
 
 $logFile = Join-Path $scriptDirectory 'installer_test.log'
 Remove-Item $logFile -ErrorAction SilentlyContinue
