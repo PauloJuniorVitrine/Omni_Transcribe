@@ -1,7 +1,5 @@
 name: System Validation
 
-# CI stages in strict order:
-# 1) Unit -> 2) Integration -> 3) E2E -> 4) Load/Performance -> 5) Build EXE -> 6) Build Installer -> 7) Installer Smoke -> 8) Publish artifacts
 on:
   push:
     branches: [main, master]
@@ -11,7 +9,6 @@ on:
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
-  # Provide safe defaults; real secrets should override in CI
   OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY || 'sk-test' }}"
   CREDENTIALS_SECRET_KEY: "${{ secrets.CREDENTIALS_SECRET_KEY || 'test-credentials-key-32-bytes__' }}"
   RUNTIME_CREDENTIALS_KEY: "${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}"
