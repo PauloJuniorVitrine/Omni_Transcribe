@@ -335,7 +335,6 @@ jobs:
       OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
       CREDENTIALS_SECRET_KEY: ${{ env.CREDENTIALS_SECRET_KEY }}
       RUNTIME_CREDENTIALS_KEY: ${{ env.RUNTIME_CREDENTIALS_KEY }}
-      REQUIRE_SIGNATURE: "1"
       REQUIRE_SIGNATURE: ${{ secrets.SIGNING_CERT_BASE64 != '' && secrets.SIGNING_CERT_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
