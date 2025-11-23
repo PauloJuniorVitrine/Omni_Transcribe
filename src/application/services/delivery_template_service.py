@@ -43,12 +43,15 @@ class DeliveryTemplateRegistry:
         return list(templates)
 
     def get(self, template_id: Optional[str]) -> DeliveryTemplate:
-        candidate = template_id or self.default_template_id
+        candidate = (template_id or self.default_template_id).strip()
         if candidate not in self._base_templates:
             path = self.base_dir / f"{candidate}.template.txt"
             if not path.exists():
                 path = self.base_dir / f"{self.default_template_id}.template.txt"
-            self._load_template(path)
+            document = self._load_template(path)
+            # Se o id real divergir do candidate, devolve o carregado para evitar KeyError
+            if candidate not in self._base_templates:
+                return document
         return self._base_templates[candidate]
 
     @property
@@ -85,6 +88,7 @@ class DeliveryTemplateRegistry:
         raw = path.read_text(encoding="utf-8")
         metadata, body = self._split_front_matter(raw)
         template_id = metadata.get("id") or path.stem.replace(".template", "")
+        template_id = str(template_id).strip()
         name = metadata.get("name") or template_id.title()
         description = metadata.get("description") or ""
         locale = self._normalize_locale(metadata.get("locale") or self._infer_locale_from_path(path))
@@ -98,12 +102,18 @@ class DeliveryTemplateRegistry:
         )
         resolved = str(path.resolve())
         self._loaded_paths[resolved] = document
+        # Registra pelo id canônico e também pelo stem para garantir lookup consistente.
+        stem_id = path.stem.replace(".template", "").strip()
         if locale:
             self._localized_templates[(template_id, locale)] = document
             # Guarantee that callers relying on `.get(id)` can resolve at least one variant.
             self._base_templates.setdefault(template_id, document)
+            if stem_id:
+                self._base_templates.setdefault(stem_id, document)
         else:
             self._base_templates[template_id] = document
+            if stem_id:
+                self._base_templates.setdefault(stem_id, document)
         self._invalidate_cache()
         return document
 
