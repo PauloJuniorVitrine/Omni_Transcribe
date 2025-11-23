@@ -37,7 +37,12 @@ class RunAsrPipeline:
         if self.status_publisher:
             self.status_publisher.publish(job)
         self.log_repository.append(
-            LogEntry(job_id=job.id, event="asr_started", level=LogLevel.INFO, message=f"Tarefa: {task}")
+            LogEntry(
+                job_id=job.id,
+                event="asr_started",
+                level=LogLevel.INFO,
+                message=f"Tarefa: {task}",
+            )
         )
 
         try:
@@ -49,7 +54,12 @@ class RunAsrPipeline:
             if self.status_publisher:
                 self.status_publisher.publish(job)
             self.log_repository.append(
-                LogEntry(job_id=job.id, event="asr_completed", level=LogLevel.INFO, message=f"Idioma: {result.language}")
+                LogEntry(
+                    job_id=job.id,
+                    event="asr_completed",
+                    level=LogLevel.INFO,
+                    message=f"Idioma: {result.language}",
+                )
             )
             return result
         except Exception as exc:
@@ -58,6 +68,11 @@ class RunAsrPipeline:
             if self.status_publisher:
                 self.status_publisher.publish(job)
             self.log_repository.append(
-                LogEntry(job_id=job.id, event="asr_failed", level=LogLevel.ERROR, message=str(exc))
+                LogEntry(
+                    job_id=job.id,
+                    event="asr_failed",
+                    level=LogLevel.ERROR,
+                    message=str(exc),
+                )
             )
             raise

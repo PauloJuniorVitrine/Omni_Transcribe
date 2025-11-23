@@ -45,8 +45,12 @@ class InboxEventHandler(FileSystemEventHandler):
         except ValueError:
             subfolder = "geral"
 
-        chunk_threshold_mb = getattr(self.container.settings, "openai_chunk_trigger_mb", None)
-        chunk_duration_sec = getattr(self.container.settings, "openai_chunk_duration_sec", 900)
+        chunk_threshold_mb = getattr(
+            self.container.settings, "openai_chunk_trigger_mb", None
+        )
+        chunk_duration_sec = getattr(
+            self.container.settings, "openai_chunk_duration_sec", 900
+        )
         if chunk_threshold_mb:
             chunk_bytes = chunk_threshold_mb * 1024 * 1024
             size = path.stat().st_size
@@ -81,7 +85,9 @@ class InboxEventHandler(FileSystemEventHandler):
                             extra={"job_id": job.id, "path": str(chunk.path), "chunk": idx},
                         )
                         if self.container.pipeline_use_case:
-                            thread = threading.Thread(target=self._run_pipeline, args=(job.id,), daemon=True)
+                            thread = threading.Thread(
+                                target=self._run_pipeline, args=(job.id,), daemon=True
+                            )
                             thread.start()
                     return
 
@@ -92,20 +98,32 @@ class InboxEventHandler(FileSystemEventHandler):
             metadata={"detected_profile": subfolder},
         )
         job = self.container.create_job_use_case.execute(input_data)
-        self.logger.info("Job criado a partir do watcher", extra={"job_id": job.id, "path": str(path)})
+        self.logger.info(
+            "Job criado a partir do watcher",
+            extra={"job_id": job.id, "path": str(path)},
+        )
 
         if self.container.pipeline_use_case:
-            thread = threading.Thread(target=self._run_pipeline, args=(job.id,), daemon=True)
+            thread = threading.Thread(
+                target=self._run_pipeline, args=(job.id,), daemon=True
+            )
             thread.start()
         else:
-            self.logger.warning("Pipeline nao configurado; job aguardando", extra={"job_id": job.id})
+            self.logger.warning(
+                "Pipeline nao configurado; job aguardando",
+                extra={"job_id": job.id},
+            )
 
     def _run_pipeline(self, job_id: str) -> None:
         try:
             assert self.container.pipeline_use_case
             self.container.pipeline_use_case.execute(job_id)
         except Exception as exc:  # pragma: no cover - runtime feedback
-            self.logger.error("Falha ao processar job", exc_info=True, extra={"job_id": job_id, "error": str(exc)})
+            self.logger.error(
+                "Falha ao processar job",
+                exc_info=True,
+                extra={"job_id": job_id, "error": str(exc)},
+            )
 
 
 def main() -> None:

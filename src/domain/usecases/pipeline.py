@@ -14,7 +14,9 @@ from .run_asr import RunAsrPipeline
 
 
 class AccuracyGuard(Protocol):
-    def evaluate(self, job_id: str, transcription: TranscriptionResult, post_edit: PostEditResult) -> None:
+    def evaluate(
+        self, job_id: str, transcription: TranscriptionResult, post_edit: PostEditResult
+    ) -> None:
         ...
 
 
@@ -54,7 +56,12 @@ class ProcessJobPipeline:
             return artifacts
         except Exception as exc:
             self.log_repository.append(
-                LogEntry(job_id=job_id, event="pipeline_failed", level=LogLevel.ERROR, message=str(exc))
+                LogEntry(
+                    job_id=job_id,
+                    event="pipeline_failed",
+                    level=LogLevel.ERROR,
+                    message=str(exc),
+                )
             )
             if self.retry_handler:
                 payload = {"stage": current_stage, "exception": exc.__class__.__name__}

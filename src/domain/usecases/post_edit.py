@@ -36,13 +36,23 @@ class PostEditTranscript:
         if self.status_publisher:
             self.status_publisher.publish(job)
         self.log_repository.append(
-            LogEntry(job_id=job.id, event="post_edit_started", level=LogLevel.INFO, message="Post-edicao iniciada")
+            LogEntry(
+                job_id=job.id,
+                event="post_edit_started",
+                level=LogLevel.INFO,
+                message="Post-edicao iniciada",
+            )
         )
 
         try:
             result = self.post_edit_service.run(job, profile, transcription)
             self.log_repository.append(
-                LogEntry(job_id=job.id, event="post_edit_completed", level=LogLevel.INFO, message="Post-edicao concluida")
+                LogEntry(
+                    job_id=job.id,
+                    event="post_edit_completed",
+                    level=LogLevel.INFO,
+                    message="Post-edicao concluida",
+                )
             )
             return result
         except Exception as exc:
@@ -51,6 +61,11 @@ class PostEditTranscript:
             if self.status_publisher:
                 self.status_publisher.publish(job)
             self.log_repository.append(
-                LogEntry(job_id=job.id, event="post_edit_failed", level=LogLevel.ERROR, message=str(exc))
+                LogEntry(
+                    job_id=job.id,
+                    event="post_edit_failed",
+                    level=LogLevel.ERROR,
+                    message=str(exc),
+                )
             )
             raise

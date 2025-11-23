@@ -62,7 +62,7 @@ jobs:
       - name: Install python deps (openapi generation)
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi pydantic pydantic-settings jinja2 python-multipart filelock
+          pip install fastapi pydantic pydantic-settings jinja2 python-multipart filelock httpx
       - name: Lint JS
         run: npm run lint:js
       - name: Jest (unit)
@@ -91,7 +91,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install fastapi uvicorn pydantic pydantic-settings jinja2 python-multipart filelock
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
       - name: Playwright
         run: npm run test:e2e || (ls -R test-results && exit 1)
       - name: Upload e2e traces
