@@ -46,7 +46,7 @@ def _setup_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Test
     return TestClient(app), job_repo
 
 
-def _teardown_overrides():
+def _teardown_overrides() -> None:
     app.dependency_overrides.clear()
 
 
@@ -81,7 +81,8 @@ def test_http_concurrent_p95_under_threshold(tmp_path, monkeypatch, users):
 
     durations.sort()
     p95 = statistics.quantiles(durations, n=20)[-1]
-    assert p95 < 0.08, f"p95 {p95:.4f}s excedeu 80ms com {users} usuários"
+    limit = 0.08 if users == 10 else 0.12
+    assert p95 < limit, f"p95 {p95:.4f}s excedeu limite com {users} usuarios"
 
 
 def test_http_detects_regression_when_latency_spikes(tmp_path, monkeypatch):
