@@ -18,9 +18,13 @@ def _call_generator(output: Path, env: dict[str, str]) -> subprocess.CompletedPr
 
 def test_generator_creates_encrypted_file(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
+    monkeypatch.setenv("SKIP_RUNTIME_CREDENTIALS_VERIFY", "0")
     secret = "A" * 32
     env = os.environ.copy()
     env["CREDENTIALS_SECRET_KEY"] = secret
+    env["OMNI_TEST_MODE"] = "0"
+    env["SKIP_RUNTIME_CREDENTIALS_VERIFY"] = "0"
     target = tmp_path / "runtime_credentials.json"
     _call_generator(target, env)
     assert target.exists()
