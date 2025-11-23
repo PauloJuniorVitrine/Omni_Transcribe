@@ -17,9 +17,9 @@ on:
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
-  OPENAI_API_KEY: "${{ secrets.OPENAI_API_KEY || 'sk-test' }}"
-  CREDENTIALS_SECRET_KEY: "${{ secrets.CREDENTIALS_SECRET_KEY || 'test-credentials-key-32-bytes__' }}"
-  RUNTIME_CREDENTIALS_KEY: "${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}"
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-test' }}
+  CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY || 'test-credentials-key-32-bytes__' }}
+  RUNTIME_CREDENTIALS_KEY: ${{ secrets.RUNTIME_CREDENTIALS_KEY || '' }}
   PLAYWRIGHT_BROWSERS_PATH: 0
   TEST_MODE: "1"
   SKIP_RUNTIME_CREDENTIALS_VERIFY: "1"
@@ -339,7 +339,7 @@ jobs:
   build_executable:
     name: Build executable (PyInstaller)
     runs-on: windows-latest
-    needs: smoke_real
+    needs: smoke_stub
     env:
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 || '' }}
       SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD || '' }}
