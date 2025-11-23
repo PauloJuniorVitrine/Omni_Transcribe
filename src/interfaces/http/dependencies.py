@@ -53,9 +53,10 @@ async def require_active_session(
     request: Request,
     session_service: SessionService = Depends(get_session_service),
 ) -> Dict[str, str]:
-    # In test mode we bypass session/CSRF to allow unit/integration tests to exercise routes
-    # without having to mint cookies/tokens.
-    if os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1":
+    # In test mode we bypass session/CSRF only for upload flow to keep integration tests simple.
+    if (os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1") and request.url.path.startswith(
+        "/jobs/upload"
+    ):
         return {"user": "test", "session_id": "test", "csrf_token": "test"}
 
     session_id = request.cookies.get("session_id")
