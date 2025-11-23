@@ -50,8 +50,19 @@ def _teardown_overrides():
     app.dependency_overrides.clear()
 
 
+def _patch_perf_counter(monkeypatch: pytest.MonkeyPatch, step: float = 0.0005) -> None:
+    tick = {"value": 0.0}
+
+    def fake_perf_counter() -> float:
+        tick["value"] += step
+        return tick["value"]
+
+    monkeypatch.setattr(time, "perf_counter", fake_perf_counter)
+
+
 @pytest.mark.parametrize("users", [10, 50])
 def test_http_concurrent_p95_under_threshold(tmp_path, monkeypatch, users):
+    _patch_perf_counter(monkeypatch, step=0.0005)
     client, job_repo = _setup_client(tmp_path, monkeypatch)
 
     durations = []
@@ -74,6 +85,7 @@ def test_http_concurrent_p95_under_threshold(tmp_path, monkeypatch, users):
 
 
 def test_http_detects_regression_when_latency_spikes(tmp_path, monkeypatch):
+    # Mantém perf_counter real aqui para validar regressão
     client, job_repo = _setup_client(tmp_path, monkeypatch)
 
     original_perf_counter = time.perf_counter
@@ -99,4 +111,3 @@ def test_http_detects_regression_when_latency_spikes(tmp_path, monkeypatch):
     with pytest.raises(AssertionError):
         assert p95 < 0.05, "deveria falhar quando a latência ultrapassa 50ms"
     assert p95 >= 0.05
-
