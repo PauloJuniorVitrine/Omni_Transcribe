@@ -1,0 +1,140 @@
+name: CI-CD
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+env:
+  APP_ENV: test
+  TEST_MODE: "1"
+  OMNI_TEST_MODE: "1"
+  SKIP_RUNTIME_CREDENTIALS_VERIFY: "1"
+  ASR_ENGINE: openai
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  CHATGPT_API_KEY: ${{ secrets.CHATGPT_API_KEY }}
+  CREDENTIALS_SECRET_KEY: ${{ secrets.CREDENTIALS_SECRET_KEY }}
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Prepare artifacts dir
+        run: mkdir -p artifacts
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt ruff
+      - name: Lint Python (ruff)
+        run: ruff check src tests
+      - name: PyTest (unit+integration)
+        run: pytest --maxfail=1 --cov=src --cov-report=xml --cov-fail-under=80 --junitxml=artifacts/pytest-report.xml
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+      - name: Upload pytest report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-report
+          path: artifacts/pytest-report.xml
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Prepare artifacts dir
+        run: mkdir -p artifacts
+      - name: Install deps
+        run: npm ci
+      - name: Lint JS
+        run: npm run lint:js
+      - name: Jest (unit)
+        run: npm run test:js -- --runInBand --ci --reporters=default --reporters=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT: artifacts/jest-report.xml
+      - name: Upload frontend test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-report
+          path: artifacts/jest-report.xml
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      - name: Playwright
+        run: npm run test:e2e || (ls -R test-results && exit 1)
+      - name: Upload e2e traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results
+
+  load:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start stub server
+        run: |
+          python scripts/stub_server.py &
+          echo $! > stub_pid.txt
+          sleep 5
+      - name: Install k6
+        run: |
+          curl -sSL https://github.com/grafana/k6/releases/download/v0.52.0/k6-v0.52.0-linux-amd64.tar.gz | tar xz
+          sudo mv k6-v0.52.0-linux-amd64/k6 /usr/local/bin/k6
+      - name: Run load smoke
+        env:
+          K6_TARGET_PORT: "8001"
+        run: k6 run tests/performance/load_smoke.js
+      - name: Stop stub server
+        if: always()
+        run: |
+          if [ -f stub_pid.txt ]; then kill "$(cat stub_pid.txt)" || true; fi
+
+  build-windows:
+    needs: [backend, frontend, e2e, load]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+          npm ci
+      - name: Build EXE (PyInstaller)
+        run: pyinstaller --onefile --name TranscribeFlow launcher_gui.py
+      - name: Build installer (NSIS)
+        run: |
+          choco install -y nsis
+          makensis installers/windows/transcribeflow.nsi
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            dist/TranscribeFlow.exe
+            dist/TranscribeFlow-Setup.exe
