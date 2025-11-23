@@ -31,6 +31,7 @@ jobs:
   validate_secrets:
     name: Validar segredos necessários
     runs-on: ubuntu-latest
+    # Evita falha em PRs de forks, onde segredos não estão disponíveis.
     if: ${{ !github.event.pull_request || github.event.pull_request.head.repo.fork == false }}
     steps:
       - name: Verificar se os segredos críticos estão presentes
@@ -97,7 +98,7 @@ jobs:
 
       - name: Executar pytest unitário
         run: |
-          mkdir -p artifacts/unit
+          mkdir -p artifacts/unit/htmlcov
           pytest tests/unit \
             --cov=src \
             --cov-report=xml:artifacts/unit/coverage.xml \
@@ -178,7 +179,7 @@ jobs:
 
       - name: Jest - especificação de contrato
         run: |
-          cross-env NODE_OPTIONS=--experimental-vm-modules npx jest tests/frontend/contracts.test.js --runInBand \
+          npx cross-env NODE_OPTIONS=--experimental-vm-modules npx jest tests/frontend/contracts.test.js --runInBand \
             | tee artifacts/contracts/jest-contracts.log
 
       - name: Playwright - fluxos de contrato
@@ -306,7 +307,7 @@ jobs:
           retention-days: 7
 
   smoke_stub:
-    name: Smoke pipeline stub
+    name: Tubo de exaustão de fumaça
     runs-on: ubuntu-latest
     needs: load_tests
     steps:
@@ -321,7 +322,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Executar smoke stub
+      - name: Tubo de exaustão de fumaça
         env:
           TEST_MODE: "1"
           OMNI_TEST_MODE: "1"
