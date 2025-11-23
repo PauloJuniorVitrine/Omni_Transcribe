@@ -157,6 +157,8 @@ jobs:
       - name: Build installer (NSIS)
         run: |
           choco install -y nsis
+          echo "##vso[task.prependpath]C:\Program Files (x86)\NSIS"
+          $env:PATH = "$env:ProgramFiles(x86)\NSIS;$env:PATH"
           makensis installers/windows/transcribeflow.nsi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
