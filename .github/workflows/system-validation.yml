@@ -31,7 +31,6 @@ jobs:
   validate_secrets:
     name: Validar segredos necessários
     runs-on: ubuntu-latest
-    # Evita falha em PRs de forks, onde segredos não estão disponíveis.
     if: ${{ !github.event.pull_request || github.event.pull_request.head.repo.fork == false }}
     steps:
       - name: Verificar se os segredos críticos estão presentes
@@ -98,7 +97,7 @@ jobs:
 
       - name: Executar pytest unitário
         run: |
-          mkdir -p artifacts/unit/htmlcov
+          mkdir -p artifacts/unit
           pytest tests/unit \
             --cov=src \
             --cov-report=xml:artifacts/unit/coverage.xml \
@@ -179,7 +178,7 @@ jobs:
 
       - name: Jest - especificação de contrato
         run: |
-          npx cross-env NODE_OPTIONS=--experimental-vm-modules npx jest tests/frontend/contracts.test.js --runInBand \
+          cross-env NODE_OPTIONS=--experimental-vm-modules npx jest tests/frontend/contracts.test.js --runInBand \
             | tee artifacts/contracts/jest-contracts.log
 
       - name: Playwright - fluxos de contrato
@@ -307,7 +306,7 @@ jobs:
           retention-days: 7
 
   smoke_stub:
-    name: Tubo de exaustão de fumaça
+    name: Smoke pipeline stub
     runs-on: ubuntu-latest
     needs: load_tests
     steps:
@@ -322,7 +321,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Tubo de exaustão de fumaça
+      - name: Executar smoke stub
         env:
           TEST_MODE: "1"
           OMNI_TEST_MODE: "1"
@@ -391,7 +390,7 @@ jobs:
     needs: smoke_stub
     env:
       SIGNING_CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 || '' }}
-      SIGNING_CERT_PASSWORD: ${{ secrets.SENHA_DO_CERTIFICADO_DE_ASSINATURA || '' }}
+      SIGNING_CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -486,7 +485,7 @@ jobs:
       OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
       CREDENTIALS_SECRET_KEY: ${{ env.CREDENTIALS_SECRET_KEY }}
       RUNTIME_CREDENTIALS_KEY: ${{ env.RUNTIME_CREDENTIALS_KEY }}
-      REQUIRE_SIGNATURE: ${{ secrets.SIGNING_CERT_BASE64 != '' && secrets.SENHA_DO_CERTIFICADO_DE_ASSINATURA != '' }}
+      REQUIRE_SIGNATURE: ${{ secrets.SIGNING_CERT_BASE64 != '' && secrets.SIGNING_CERT_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
 
