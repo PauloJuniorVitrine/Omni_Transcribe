@@ -153,7 +153,9 @@ jobs:
           pip install -r requirements.txt pyinstaller
           npm ci
       - name: Build EXE (PyInstaller)
-        run: pyinstaller --onefile --name TranscribeFlow launcher_gui.py
+        run: |
+          pyinstaller --noconfirm --onefile --name TranscribeFlow launcher_gui.py
+          Get-ChildItem -Path dist
       - name: Build installer (NSIS)
         run: |
           choco install -y nsis
