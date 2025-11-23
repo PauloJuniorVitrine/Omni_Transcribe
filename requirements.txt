@@ -15,6 +15,7 @@ boto3
 gspread
 google-auth
 pytest
+pytest-cov
 filelock
 cryptography
 httpx
