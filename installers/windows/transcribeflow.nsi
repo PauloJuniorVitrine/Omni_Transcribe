@@ -1,8 +1,8 @@
 !define APPNAME "TranscribeFlow"
 !define APPVER "1.0.0"
-!define EXE "dist\\TranscribeFlow.exe"
+!define EXE "..\\..\\dist\\TranscribeFlow.exe"
 
-OutFile "dist\\TranscribeFlow-Setup.exe"
+OutFile "..\\..\\dist\\TranscribeFlow-Setup.exe"
 InstallDir "$PROGRAMFILES\\${APPNAME}"
 RequestExecutionLevel admin
 
