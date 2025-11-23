@@ -354,3 +354,17 @@
 {"timestamp": "2025-11-22T16:38:24.507721+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
 {"timestamp": "2025-11-22T16:38:24.533116+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
 {"timestamp": "2025-11-22T16:38:24.573493+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-23T16:44:41.251676+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-23T16:44:41.301550+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-23T16:44:41.440766+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-23T16:44:42.688348+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-23T16:44:42.720832+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-23T16:44:42.898071+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-23T16:45:27.645089+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-23T16:45:27.666011+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-23T16:45:27.981978+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-23T16:45:28.020331+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-23T16:45:28.045562+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-23T16:45:28.099504+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-23T16:50:18.976465+00:00", "action": "create", "template_id": "pw-1763916618685", "metadata": {"name": "Playwright Template", "description": ""}}
+{"timestamp": "2025-11-23T16:50:19.119609+00:00", "action": "delete", "template_id": "pw-1763916618685", "metadata": {}}

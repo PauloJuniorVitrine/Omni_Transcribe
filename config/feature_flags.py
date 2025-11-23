@@ -10,6 +10,7 @@ DEFAULT_FEATURE_FLAGS: Dict[str, bool] = {
     "dashboard.live_incidents": True,
     "jobs.manual_reprocess": True,
     "ui.api_settings": True,
+    "downloads.signature_required": True,
 }
 
 

@@ -14,7 +14,7 @@ APP_ENV=production
 CREDENTIALS_SECRET_KEY=<chave urlsafe 32 bytes>
 OPENAI_API_KEY=<chave real>
 MAX_AUDIO_SIZE_MB=8192
-MAX_REQUEST_BODY_MB=200
+MAX_REQUEST_BODY_MB=2048
 OPENAI_CHUNK_TRIGGER_MB=200
 OPENAI_CHUNK_DURATION_SEC=900
 ACCURACY_THRESHOLD=0.99
@@ -57,7 +57,7 @@ python launcher_gui.py --host 0.0.0.0 --port 8000
 - Scripts de atalho para Windows: `scripts/run_with_gui.ps1`, `scripts/run_transcribeflow.ps1`, `scripts/run_transcribeflow.bat` (todos chamam `launcher_gui.py`, sem TranscribeFlow.exe).
 - Configure reverse proxy (Nginx/Traefik) apontando `/` para Uvicorn e proteja com HTTPS.
 - GUI cobre: dashboard, incidentes, logs, revisao, downloads com token, upload de audio (criando job), flags e templates, credenciais runtime.
-- Downloads: quando a flag `downloads.signature_required` estiver ativa, os links usam token HMAC (`token` + `expires`); acione `/health` para checar status básico. Rate-limit aplicado em downloads e APIs de logs/resumo/incidentes (429), desativado em TEST_MODE. Limite de upload padrão via GUI: 2 GB (`MAX_REQUEST_BODY_MB`), suficiente para áudios longos (chunking automático acima de 200 MB).
+- Downloads: quando a flag downloads.signature_required estiver ativa, os links usam token HMAC (	oken + expires); acione /health para checar status basico. Rate-limit aplicado em downloads e APIs de logs/resumo/incidentes (429), desativado em TEST_MODE. Limite de upload padrao via GUI: 2 GB (MAX_REQUEST_BODY_MB), suficiente para audios longos (chunking automatico acima de 200 MB). Ajuste MAX_REQUEST_BODY_MB conforme gateway/proxy; o default (2048 MB) acompanha a aplicacao, mas em producao pode ser reduzido para alinhar com infraestrutura e evitar uploads excessivos.
 - CORS: defina `CORS_ALLOWED_ORIGINS` com domínios reais; `CORS_ALLOW_CREDENTIALS=true` se usar cookies/sessão. Defaults são permissivos (`*`); restrinja em produção.
   - Guard: se `APP_ENV=production` e `CORS_ALLOWED_ORIGINS` contém `*`, o serviço não sobe (fail-fast).
 
@@ -89,3 +89,10 @@ python -m interfaces.cli.run_job --job-id <ID>
 - [ ] Secrets definidos no provedor
 - [ ] `config/runtime_credentials.json` apenas payload criptografado (sem chaves reais)
 - [ ] (Opcional) Assinatura aplicada ao EXE/installer se certificados configurados
+- [ ] Smoke real: upload -> process -> download (token assinado) em backend real
+- [ ] Smoke leve (stub): `python scripts/smoke_pipeline_stub.py` para validar wiring sem chamadas externas
+
+## Notas adicionais de seguranca e readiness
+- Downloads: `downloads.signature_required` ativo por padrao; validar `config/feature_flags.json` e checar downloads assinados no dashboard antes do go-live.
+- Uploads: nomes sao sanitizados para evitar traversal; limite de tamanho segue `MAX_AUDIO_SIZE_MB`.
+- Smoke real recomendado: upload -> process -> download (token assinado) em backend real antes de build_exe/installer.

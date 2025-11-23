@@ -6,6 +6,7 @@
 3. `pip install -r requirements.txt`
 4. `npm ci` (para testes frontend)
 5. Gerar cofre se preciso: `CREDENTIALS_SECRET_KEY=<32b_urlsafe> python scripts/generate_runtime_credentials.py`
+   - Dependência relevante: `PyYAML` já está no `requirements.txt` e é usada para ler perfis/templates.
 
 ## Rodando
 - GUI web: `python launcher_gui.py --host 127.0.0.1 --port 8000`
@@ -45,3 +46,15 @@
 - Armazenamento padrao usa arquivos JSON + filelock em `processing/`.
 - Downloads exigem assinatura HMAC por padrao (flag configurable em feature flags).
 - Evite commitar `config/runtime_credentials.json` ou chaves reais. 
+
+## Smoke tests (antes de build/installer)
+- Leve (stub, sem chamadas externas): `python scripts/smoke_pipeline_stub.py` valida wiring do pipeline com stubs e gera artefatos em diretorio temporario.
+- Real (backend rodando): subir app (`launcher_gui.py`), realizar upload pequeno, acionar processar e baixar artefato com token; requer credenciais validas e disponibilidade do engine (OpenAI/local). Use flash/CSRF da UI ou chamadas API autenticadas.
+
+## Persistencia (roadmap)
+- Atual: JSON+filelock em `processing/`.
+- Proximo passo sugerido: piloto com SQLite como backend para jobs/logs/reviews, mantendo filelock como fallback para ambientes simples. Avaliar impacto em concorrencia e migração de dados (export/import dos JSON).
+## Notas de seguranca e readiness
+- Downloads: `downloads.signature_required` permanece ativo por padrao; mantenha `config/feature_flags.json` integro ou defina flag explicitamente. Tokens invalidos bloqueiam download.
+- Uploads: nomes de arquivos sao sanitizados (slug ASCII) e extensoes limitadas a audio permitido; respeita `MAX_AUDIO_SIZE_MB`.
+- Smoke pre-release recomendado: executar upload -> process -> download (token assinado) contra backend real antes de build/installer.

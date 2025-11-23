@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     base_rejected_dir: Path = Field(default=Path("rejected"), alias="BASE_REJECTED_DIR")
 
     # Persistence
+    persistence_backend: Literal["file", "sqlite"] = Field(default="file", alias="PERSISTENCE_BACKEND")
     database_url: str = Field(default="sqlite:///transcribeflow.db", alias="DATABASE_URL")
     csv_log_path: Path = Field(default=Path("output/log.csv"), alias="CSV_LOG_PATH")
 

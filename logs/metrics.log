@@ -705,3 +705,33 @@
 {"timestamp": "2025-11-22T16:38:24.678842+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
 {"timestamp": "2025-11-22T16:38:25.370826+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
 {"timestamp": "2025-11-22T16:38:25.391686+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:44:35.922604+00:00", "event": "artifact.download.success", "payload": {"job_id": "e7815edb38bd4fd9a53c79c3392dc96d", "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pytest-of-User\\pytest-417\\test_upload_creates_job_and_do0\\output\\e7815edb38bd4fd9a53c79c3392dc96d\\e7815edb38bd4fd9a53c79c3392dc96d_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:44:38.166503+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:44:39.619619+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:44:39.632784+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-23T16:44:43.037914+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:44:45.675658+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:44:45.690886+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:45:23.093611+00:00", "event": "artifact.download.success", "payload": {"job_id": "d26a81a38fd14de2b05fc60f26261d72", "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pytest-of-User\\pytest-419\\test_upload_creates_job_and_do0\\output\\d26a81a38fd14de2b05fc60f26261d72\\d26a81a38fd14de2b05fc60f26261d72_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:45:25.971582+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:45:27.097250+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:45:27.224403+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-23T16:45:28.303546+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:45:28.715379+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:45:28.731228+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:50:14.694357+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:14.699058+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:14.725431+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:14.733039+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:14.734858+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:14.744603+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:14.792905+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:14.793914+00:00", "event": "dashboard.summary.requested", "payload": {"total": 1, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:16.068820+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:16.069865+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:16.120286+00:00", "event": "artifact.download.success", "payload": {"job_id": "job-e2e", "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-e2e\\job-e2e_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-23T16:50:17.128702+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:17.130172+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 0, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:17.331610+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 0, "limit": 100}}
+{"timestamp": "2025-11-23T16:50:17.336146+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
+{"timestamp": "2025-11-23T16:50:17.619028+00:00", "event": "artifact.download.success", "payload": {"job_id": "job-e2e", "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-e2e\\job-e2e_v1.txt", "extension": ".txt"}}

@@ -66,13 +66,13 @@ class RuntimeCredentialStore:
 
     def __post_init__(self) -> None:
         test_mode = os.getenv("TEST_MODE") in {"1", "true", "True"} or os.getenv("OMNI_TEST_MODE") in {"1", "true", "True"}
-        secret_env = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
-        if test_mode and not secret_env:
-            # Skip all disk/crypto operations in test mode when no secret is available.
+        if test_mode:
+            # Skip disk/crypto in test environments.
             self._cipher = None
             self._secret_loaded_from_cache = False
             self._memory_store = json.loads(json.dumps(DEFAULT_CREDENTIALS))
             return
+        secret_env = os.getenv("CREDENTIALS_SECRET_KEY") or os.getenv("RUNTIME_CREDENTIALS_KEY")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.audit_path.parent.mkdir(parents=True, exist_ok=True)
         self.lock = FileLock(str(self.path) + ".lock")

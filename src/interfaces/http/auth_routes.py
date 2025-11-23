@@ -40,11 +40,24 @@ async def callback(
     state: str | None = None,
     oauth_service: OAuthService = Depends(get_oauth_service),
     session_service: SessionService = Depends(get_session_service),
+    settings: Settings = Depends(get_app_settings),
 ):
     if not code:
         raise HTTPException(status_code=400, detail="Codigo nao fornecido.")
-    tokens = oauth_service.exchange_code(code)
-    session_id = session_service.create_session(tokens, metadata={"state": state})
+    if not state:
+        raise HTTPException(status_code=400, detail="Estado de validacao ausente.")
+    try:
+        tokens = oauth_service.exchange_code(code)
+        session_id = session_service.create_session(
+            tokens, metadata={"state": state, "trace_id": getattr(request.state, "trace_id", "")}
+        )
+    except Exception as exc:
+        logger.error(
+            "Falha ao processar callback OAuth",
+            exc_info=True,
+            extra={"state": state, "trace_id": getattr(request.state, "trace_id", "")},
+        )
+        raise HTTPException(status_code=500, detail="Sessao indisponivel.") from exc
     logger.info("Callback OAuth recebido", extra={"state": state, "session_id": session_id})
     expects_json = "application/json" in (request.headers.get("accept") or "")
     if expects_json:
@@ -57,5 +70,6 @@ async def callback(
         httponly=True,
         max_age=session_service.ttl_seconds,
         samesite="lax",
+        secure=settings.app_env == "production",
     )
     return response

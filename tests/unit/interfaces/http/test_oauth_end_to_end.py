@@ -39,3 +39,16 @@ def test_oauth_browser_flow_sets_cookie_and_redirect(tmp_path):
         assert resp_callback.cookies["session_id"]
 
     app.dependency_overrides.clear()
+
+
+def test_oauth_callback_requires_state(tmp_path):
+    oauth_stub = _StubOAuthService()
+    session_service = SessionService(storage_path=tmp_path / "sessions.json", ttl_minutes=1)
+    app.dependency_overrides[auth_routes.get_oauth_service] = lambda: oauth_stub
+    app.dependency_overrides[get_session_service] = lambda: session_service
+
+    client = TestClient(app)
+    resp_callback = client.get("/auth/callback", params={"code": "abc"}, follow_redirects=False)
+    assert resp_callback.status_code == 400
+
+    app.dependency_overrides.clear()

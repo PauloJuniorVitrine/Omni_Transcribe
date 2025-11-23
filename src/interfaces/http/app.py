@@ -7,13 +7,16 @@ import hmac
 import io
 import logging
 import re
+import unicodedata
 import urllib.parse
 import os
+import uuid
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import deque
 import time
 from typing import Any, Deque, Dict, List, Optional, TypedDict
+import requests
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
@@ -92,6 +95,20 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def add_request_context(request: Request, call_next):
+    trace_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex
+    request.state.trace_id = trace_id
+    response = await call_next(request)
+    response.headers.setdefault("X-Request-ID", trace_id)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "same-origin")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    if getattr(_app_settings, "app_env", "development") == "production":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+    return response
+
+
 def _reload_template_registry() -> None:
     global _template_registry
     _template_registry = DeliveryTemplateRegistry(_templates_dir)
@@ -99,11 +116,52 @@ def _reload_template_registry() -> None:
 
 def _get_template_registry() -> DeliveryTemplateRegistry:
     return _template_registry
+def _get_trace_id(request: Request) -> str:
+    return getattr(request.state, "trace_id", "")
 
 # Artifact download whitelist & signature
 ALLOWED_DOWNLOAD_EXTENSIONS = {"txt", "srt", "vtt", "json", "zip"}
 ALLOWED_UPLOAD_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg"}
+ALLOWED_UPLOAD_MIME_TYPES = {
+    "audio/wav",
+    "audio/x-wav",
+    "audio/mpeg",
+    "audio/mp3",
+    "audio/aac",
+    "audio/flac",
+    "audio/ogg",
+    "audio/mp4",
+    "audio/x-m4a",
+}
 ARTIFACT_TOKEN_TTL_MINUTES = 10
+
+
+def _sanitize_upload_filename(filename: str) -> str:
+    if not filename:
+        raise HTTPException(status_code=400, detail="Arquivo invalido.")
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Arquivo invalido.")
+    base = Path(filename).name
+    extension = Path(base).suffix.lower()
+    if extension not in ALLOWED_UPLOAD_EXTENSIONS:
+        raise HTTPException(status_code=400, detail="Extensao de audio nao permitida.")
+    stem = Path(base).stem
+    normalized = unicodedata.normalize("NFKD", stem)
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    cleaned = re.sub(r"[^a-zA-Z0-9._-]+", "-", ascii_only).strip("._-")
+    safe_stem = cleaned or "upload"
+    safe_name = f"{safe_stem[:80]}{extension}"
+    if ".." in safe_name or "/" in safe_name or "\\" in safe_name:
+        raise HTTPException(status_code=400, detail="Arquivo invalido.")
+    return safe_name
+
+
+def _validate_upload_mime(content_type: Optional[str]) -> None:
+    if not content_type:
+        return
+    normalized = content_type.split(";")[0].strip().lower()
+    if normalized and normalized not in ALLOWED_UPLOAD_MIME_TYPES:
+        raise HTTPException(status_code=400, detail="Tipo de arquivo nao permitido.")
 
 
 def _sign_download(path: str, ttl_minutes: int = ARTIFACT_TOKEN_TTL_MINUTES) -> tuple[str, str]:
@@ -636,17 +694,15 @@ async def upload_job(
     _: dict | None = Depends(require_active_session),
 ) -> Response:
     settings = get_settings()
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Arquivo invalido.")
-    suffix = Path(file.filename).suffix.lower()
-    if suffix not in ALLOWED_UPLOAD_EXTENSIONS:
-        raise HTTPException(status_code=400, detail="Extensao de audio nao permitida.")
+    sanitized_name = _sanitize_upload_filename(file.filename or "")
+    _validate_upload_mime(file.content_type)
+    suffix = Path(sanitized_name).suffix.lower()
     max_bytes = settings.max_audio_size_mb * 1024 * 1024
     target_dir = Path(settings.base_input_dir) / (profile or "geral")
     target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / file.filename
+    target = target_dir / sanitized_name
     if target.exists():
-        target = target_dir / f"{Path(file.filename).stem}_{int(time.time())}{suffix}"
+        target = target_dir / f"{Path(sanitized_name).stem}_{int(time.time())}{suffix}"
     total_read = 0
     chunk_size = max(1024 * 1024, min(4 * 1024 * 1024, max_bytes // 4 or max_bytes))
     try:
@@ -956,6 +1012,7 @@ async def download_artifact(
     file_path = Path(path).resolve()
     accept_html = _wants_html(request)
     session_id = (session or {}).get("session_id")
+    client_ip = request.client.host if request and request.client else None
     try:
         settings = get_settings()
         allowed_roots = [Path(settings.base_output_dir).resolve(), Path(settings.base_backup_dir).resolve()]
@@ -966,24 +1023,25 @@ async def download_artifact(
         suffix = file_path.suffix.lower().lstrip(".")
         if suffix not in settings.allowed_download_extensions:
             raise HTTPException(status_code=400, detail="Extensao nao permitida.")
-        _enforce_download_rate(session_id)
+        rate_key = f"{session_id or 'anonymous'}:{client_ip or 'unknown'}"
+        _enforce_download_rate(rate_key)
         if _feature_flags_snapshot().get("downloads.signature_required", True):
             _validate_download_token(path=path, token=token, expires=expires)
     except HTTPException as exc:
         logger.warning(
             "Download redirecionado por erro",
-            extra={"job_id": job_id, "path": str(file_path), "detail": exc.detail},
+            extra={"job_id": job_id, "path": str(file_path), "detail": exc.detail, "trace_id": _get_trace_id(request)},
         )
         notify_alert(
             "artifact.download.blocked",
-            {"job_id": job_id, "path": str(file_path), "detail": exc.detail},
+            {"job_id": job_id, "path": str(file_path), "detail": exc.detail, "trace_id": _get_trace_id(request)},
         )
         if accept_html:
             target = f"/jobs/{job_id}?flash=download-error" if job_id else "/?flash=download-error"
             return RedirectResponse(url=target, status_code=303)
         raise exc
 
-    logger.info("Download solicitado", extra={"path": str(file_path)})
+    logger.info("Download solicitado", extra={"path": str(file_path), "trace_id": _get_trace_id(request)})
     record_metric(
         "artifact.download.success",
         {"job_id": job_id, "path": str(file_path), "extension": file_path.suffix.lower()},

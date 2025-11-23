@@ -15,6 +15,13 @@ _feature_flags = FeatureFlagProvider()
 def _build_runtime_store() -> RuntimeCredentialStore:
     # Test-mode short-circuit to avoid decrypting credentials during import/collection.
     # Controlled via TEST_MODE/OMNI_TEST_MODE so CI/pytest can run without secrets.
+    import sys
+
+    is_pytest = os.getenv("PYTEST_CURRENT_TEST") or any("pytest" in arg for arg in sys.argv)
+    if is_pytest and not os.getenv("CREDENTIALS_SECRET_KEY") and not os.getenv("RUNTIME_CREDENTIALS_KEY"):
+        os.environ.setdefault("TEST_MODE", "1")
+        os.environ.setdefault("OMNI_TEST_MODE", "1")
+        os.environ.setdefault("SKIP_RUNTIME_CREDENTIALS_VERIFY", "1")
     return RuntimeCredentialStore()
 
 

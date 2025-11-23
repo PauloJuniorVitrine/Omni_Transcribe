@@ -2,14 +2,20 @@
 
 Plataforma: GitHub Actions (`.github/workflows/system-validation.yml`).
 
-Decisao: adaptar a pipeline existente substituindo-a por um fluxo linear que impone a ordem rigidamente: unit -> integration -> e2e -> load -> build. A antiga rodava algumas suites em paralelo (JS/Python, load antes de e2e) e fazia build a partir de `run_job.py`. Agora o build so ocorre apos todos os testes passarem e usa o launcher oficial `launcher_gui.py`.
+Decisao: pipeline linear e sequencial, sem paralelismo entre suites. A ordem real no workflow `system-validation.yml` e: validate_secrets -> sast_and_secretscan -> tests_unit -> contracts_api (OpenAPI + Jest contracts + Playwright smoke) -> tests_integration -> tests_e2e -> tests_load -> build_executable (PyInstaller) -> build_installer -> test_installer -> publish_artifacts. O build ocorre somente apos todas as suites passarem e usa o launcher oficial `launcher_gui.py`.
 
 Estagios:
-1) tests_unit (pytest unit + lint/test JS)  
-2) tests_integration (pytest integration)  
-3) tests_e2e (Playwright, com trace e reporter junit)  
-4) tests_load (pytest tests/performance)  
-5) build_executable (PyInstaller em Windows, depende de todos os testes)
+1) validate_secrets (pulavel em forks)  
+2) sast_and_secretscan (bandit, trivy, eslint)  
+3) tests_unit (pytest unit + lint/test JS)  
+4) contracts_api (pytest contratos, OpenAPI TS gen + tsc, Jest contrato, Playwright contratos)  
+5) tests_integration (pytest integration)  
+6) tests_e2e (Playwright, com trace e reporter junit)  
+7) tests_load (pytest tests/performance)  
+8) build_executable (PyInstaller em Windows)  
+9) build_installer (gera installer com exe)  
+10) test_installer (smoke do installer)  
+11) publish_artifacts (expoe exe/installer e artefatos)
 
 Fail-fast: cada job depende do anterior via `needs`, entao se um falha, os seguintes nao rodam. Artefatos de logs/junit/traces sao sempre publicados com `if: always()`.
 

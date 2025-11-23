@@ -61,6 +61,38 @@ def test_get_flash_message_and_safe_int():
     assert http_app._safe_int("invalid", default=3, maximum=5) == 3
 
 
+def test_sanitize_upload_filename_normalizes_and_preserves_extension():
+    assert http_app._sanitize_upload_filename("Meu Audio.WAV") == "Meu-Audio.wav"
+    assert http_app._sanitize_upload_filename("áudio-estranho.mp3") == "audio-estranho.mp3"
+
+
+def test_sanitize_upload_filename_blocks_traversal_and_invalid_extension():
+    with pytest.raises(HTTPException):
+        http_app._sanitize_upload_filename("../malicioso.wav")
+    with pytest.raises(HTTPException):
+        http_app._sanitize_upload_filename("evil.txt")
+
+
+def test_validate_upload_mime_allows_audio_and_rejects_other():
+    http_app._validate_upload_mime("audio/wav")
+    http_app._validate_upload_mime("audio/mp3; charset=utf-8")
+    with pytest.raises(HTTPException):
+        http_app._validate_upload_mime("application/pdf")
+    with pytest.raises(HTTPException):
+        http_app._validate_upload_mime("text/plain")
+
+
+def test_enforce_download_rate_scoped_by_session_and_ip(monkeypatch):
+    http_app._download_tracker.clear()
+    monkeypatch.setattr(http_app, "_DOWNLOAD_RATE_LIMIT", 1, raising=False)
+    # Same session+ip blocks second attempt
+    http_app._enforce_download_rate("sess:ip1")
+    with pytest.raises(HTTPException):
+        http_app._enforce_download_rate("sess:ip1")
+    # Different IP should not block
+    http_app._enforce_download_rate("sess:ip2")
+
+
 def _make_job(job_id: str, status: JobStatus, profile: str = "default", **metadata) -> Job:
     job = Job(
         id=job_id,
