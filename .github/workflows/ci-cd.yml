@@ -44,6 +44,12 @@ jobs:
         with:
           name: pytest-report
           path: artifacts/pytest-report.xml
+      - name: Upload pytest artifacts dir (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-artifacts
+          path: artifacts/**
 
   frontend:
     runs-on: ubuntu-latest
@@ -74,6 +80,12 @@ jobs:
         with:
           name: jest-report
           path: artifacts/jest-report.xml
+      - name: Upload jest artifacts dir (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-artifacts
+          path: artifacts/**
 
   e2e:
     runs-on: ubuntu-latest
@@ -100,6 +112,12 @@ jobs:
         with:
           name: playwright-traces
           path: test-results
+      - name: Upload e2e reports (JUnit if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: artifacts/**
 
   load:
     runs-on: ubuntu-latest
@@ -135,6 +153,14 @@ jobs:
         with:
           name: stub-server-log
           path: stub_server.log
+      - name: Upload k6 results (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: |
+            artifacts/**
+            k6-summary.json
 
   build-windows:
     needs: [backend, frontend, e2e, load]
