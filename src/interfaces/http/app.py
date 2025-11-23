@@ -35,11 +35,6 @@ from domain.entities.log_entry import LogEntry
 from domain.entities.value_objects import ArtifactType, EngineType, JobStatus, LogLevel
 from infrastructure.container import get_container
 from infrastructure.telemetry.metrics_logger import record_metric, notify_alert, load_entries, summarize_metrics
-from .schemas import (
-    DashboardSummaryResponse,
-    DashboardIncidentsResponse,
-    JobLogsResponse,
-)
 from . import auth_routes, webhook_routes
 from .dependencies import require_active_session
 from .schemas import (

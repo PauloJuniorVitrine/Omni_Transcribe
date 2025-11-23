@@ -4,8 +4,6 @@ import logging
 import threading
 import time
 from pathlib import Path
-import os
-
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 

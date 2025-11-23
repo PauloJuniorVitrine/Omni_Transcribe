@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 from application.services.audio_chunker import AudioChunker
 from application.services.chatgpt_service import ChatGptPostEditingService
-from application.services.ports import AsrEngineClient, SheetGateway
-from application.services.status_publisher import SheetStatusPublisher
+from application.services.ports import AsrEngineClient
 from application.services.whisper_service import WhisperService
 from config import Settings
 from domain.ports.services import RejectedJobLogger

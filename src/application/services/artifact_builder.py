@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Iterable, List
 from uuid import uuid4
 
 from domain.entities.artifact import Artifact

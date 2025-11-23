@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Tuple
 
 from application.services.package_service import ZipPackageService
 from application.services.rejected_logger import FilesystemRejectedLogger

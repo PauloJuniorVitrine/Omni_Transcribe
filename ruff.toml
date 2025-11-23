@@ -1,0 +1,5 @@
+target-version = "py311"
+extend-select = ["E", "F"]
+
+[lint.per-file-ignores]
+"tests/**/*" = ["F401", "F841", "F811", "E401"]

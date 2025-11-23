@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Tuple
-
 from config import Settings
-from domain.ports.services import RejectedJobLogger
 from infrastructure.database.artifact_repository import FileArtifactRepository
 from infrastructure.database.job_repository import FileJobRepository
 from infrastructure.database.log_repository import FileLogRepository

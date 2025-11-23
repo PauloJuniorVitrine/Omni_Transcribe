@@ -49,6 +49,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -56,6 +59,10 @@ jobs:
         run: mkdir -p artifacts
       - name: Install deps
         run: npm ci
+      - name: Install python deps (openapi generation)
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi pydantic pydantic-settings jinja2 python-multipart filelock
       - name: Lint JS
         run: npm run lint:js
       - name: Jest (unit)
@@ -72,10 +79,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
       - run: npm ci
+      - name: Install python deps for stub server
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn pydantic pydantic-settings jinja2 python-multipart filelock
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
       - name: Playwright
@@ -91,11 +105,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install python deps for stub server
+        run: |
+          python -m pip install --upgrade pip
+          pip install fastapi uvicorn pydantic pydantic-settings jinja2 python-multipart filelock
       - name: Start stub server
         run: |
-          python scripts/stub_server.py &
+          python scripts/stub_server.py > stub_server.log 2>&1 &
           echo $! > stub_pid.txt
-          sleep 5
+          timeout 20 bash -c 'until curl -sf http://127.0.0.1:8001/health; do sleep 1; done'
       - name: Install k6
         run: |
           curl -sSL https://github.com/grafana/k6/releases/download/v0.52.0/k6-v0.52.0-linux-amd64.tar.gz | tar xz
@@ -108,6 +129,12 @@ jobs:
         if: always()
         run: |
           if [ -f stub_pid.txt ]; then kill "$(cat stub_pid.txt)" || true; fi
+      - name: Upload stub server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stub-server-log
+          path: stub_server.log
 
   build-windows:
     needs: [backend, frontend, e2e, load]

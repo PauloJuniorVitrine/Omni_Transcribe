@@ -10,7 +10,7 @@ from domain.entities.transcription import Segment, TranscriptionResult
 from domain.entities.value_objects import EngineType
 from domain.ports.services import AsrService
 
-from .audio_chunker import AudioChunker, AudioChunk
+from .audio_chunker import AudioChunker
 from .ports import AsrEngineClient
 from .retry import RetryConfig, RetryExecutor
 
