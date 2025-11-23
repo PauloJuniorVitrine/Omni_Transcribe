@@ -158,6 +158,7 @@ jobs:
           Get-ChildItem -Path dist
       - name: Build installer (NSIS)
         run: |
+          Set-Location $env:GITHUB_WORKSPACE
           choco install -y nsis
           $nsisPath = "${env:ProgramFiles(x86)}\NSIS\Bin"
           echo "Adding NSIS to PATH: $nsisPath"
@@ -169,6 +170,7 @@ jobs:
             if (Test-Path "dist") { Get-ChildItem -Recurse dist }
             exit 1
           }
+          Get-ChildItem -Recurse dist
           makensis installers/windows/transcribeflow.nsi
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
