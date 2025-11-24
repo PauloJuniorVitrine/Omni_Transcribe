@@ -61,6 +61,8 @@ async def require_active_session(
         return {"user": "test", "session_id": "test", "csrf_token": "test"}
 
     session_id = request.cookies.get("session_id")
+    if not session_id:
+        raise HTTPException(status_code=401, detail="Nao autenticado.")
     session = session_service.get_session(session_id)
     if not session:
         raise HTTPException(status_code=401, detail="Nao autenticado.")
