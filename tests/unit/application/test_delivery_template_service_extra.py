@@ -57,3 +57,26 @@ def test_split_front_matter_handles_plain_text(tmp_path: Path) -> None:
 
     assert doc.description == ""
     assert doc.body == "sem yaml aqui"
+
+
+def test_default_template_id_returns_default_when_no_files(tmp_path: Path) -> None:
+    registry = DeliveryTemplateRegistry(tmp_path)
+    assert registry.default_template_id == "default"
+
+
+def test_infer_locale_returns_none_for_outside_path(tmp_path: Path) -> None:
+    registry = DeliveryTemplateRegistry(tmp_path)
+    other = tmp_path.parent / "other" / "custom.template.txt"
+    other.parent.mkdir(parents=True, exist_ok=True)
+    other.write_text("---\nid: custom\n---\nbody", encoding="utf-8")
+    assert registry._infer_locale_from_path(other) is None  # type: ignore[attr-defined]
+
+
+def test_get_localized_returns_none_for_missing_language(tmp_path: Path) -> None:
+    registry = DeliveryTemplateRegistry(tmp_path)
+    # sem language
+    assert registry._get_localized("id", None) is None  # type: ignore[attr-defined]
+    # language vazia
+    assert registry._get_localized("id", "") is None  # type: ignore[attr-defined]
+    # language sem template correspondente
+    assert registry._get_localized("id", "fr-FR") is None  # type: ignore[attr-defined]

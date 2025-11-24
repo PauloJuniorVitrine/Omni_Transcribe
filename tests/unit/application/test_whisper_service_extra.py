@@ -101,3 +101,35 @@ def test_run_chunked_adjusts_segments_and_cleans(monkeypatch, tmp_path: Path) ->
     assert result.metadata["chunked"] is True
     assert len(result.segments) == 2  # adjusted segments
     assert all(not p.exists() for p in chunk_paths)
+
+
+def test_should_chunk_disabled_when_threshold_zero(tmp_path: Path) -> None:
+    service = WhisperService(engine_clients={}, chunker=None, chunk_trigger_mb=0)
+    assert service._should_chunk(tmp_path / "file.wav") is False
+
+
+def test_run_chunked_ignores_remove_errors(monkeypatch, tmp_path: Path) -> None:
+    def _chunker_split(_path: Path) -> List[AudioChunk]:
+        p = tmp_path / "chunk.wav"
+        p.write_bytes(b"c")
+        return [AudioChunk(path=p, start_sec=0.0, duration_sec=1.0)]
+
+    client = _FakeClient({"text": "a", "segments": [{"start": 0, "end": 1, "text": "t"}], "duration": 1.0})
+    job = _job(tmp_path)
+    profile = Profile(id="p", meta={}, prompt_body="")
+    service = WhisperService(
+        engine_clients={EngineType.OPENAI.value: client},
+        retry_executor=_SimpleRetry(),
+        chunker=type("Chunker", (), {"split": staticmethod(_chunker_split)}),
+        chunk_trigger_mb=1,
+    )
+
+    monkeypatch.setattr(service, "_should_chunk", lambda _p: True)
+    def _remove(_p):
+        raise OSError("err")
+
+    monkeypatch.setattr("application.services.whisper_service.os.remove", _remove)
+
+    result = service.run(job, profile)
+
+    assert result.metadata["chunked"] is True

@@ -38,6 +38,12 @@ def test_ensure_csrf_token_reuses_existing(monkeypatch, tmp_path: Path) -> None:
     assert record and record["metadata"]["csrf_token"] == first
 
 
+def test_ensure_csrf_token_returns_new_for_missing_session(tmp_path: Path) -> None:
+    service = SessionService(tmp_path / "store.json", ttl_minutes=1)
+    token = service.ensure_csrf_token("unknown")
+    assert token
+
+
 def test_read_store_handles_corrupted_json(tmp_path: Path) -> None:
     store = tmp_path / "store.json"
     store.write_text("{invalid", encoding="utf-8")

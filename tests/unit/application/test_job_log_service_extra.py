@@ -44,3 +44,13 @@ def test_query_include_all_ignores_invalid_level() -> None:
     assert result.total == 2
     assert result.page_size == 2
     assert result.logs[0].timestamp >= result.logs[1].timestamp or result.logs[0].timestamp <= result.logs[1].timestamp
+
+
+def test_filter_excludes_when_fragment_missing() -> None:
+    entries = [_entry("j", "hello", LogLevel.INFO), _entry("j", "other", LogLevel.INFO)]
+    service = JobLogService(_Repo(entries))
+
+    result = service.query("j", level="", event_contains="zzz", page=1, page_size=10, include_all=False)
+
+    assert result.total == 0
+    assert result.logs == []

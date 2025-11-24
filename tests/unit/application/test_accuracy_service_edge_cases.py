@@ -129,3 +129,9 @@ def test_evaluate_uses_client_reference_when_better(tmp_path):
     assert float(updated.metadata["accuracy_wer"]) < float(updated.metadata["accuracy_wer_asr"])
     # Log was appended
     assert any(isinstance(entry, LogEntry) and entry.event == "accuracy_evaluated" for entry in log_repo.entries)
+
+
+def test_levenshtein_handles_empty_reference(tmp_path):
+    guard = _guard(tmp_path)
+    # reference vazio, hypothesis com 2 tokens deve retornar 2
+    assert guard._levenshtein([], ["a", "b"]) == 2

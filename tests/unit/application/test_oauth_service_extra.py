@@ -29,3 +29,11 @@ def test_exchange_code_propagates_http_error(monkeypatch) -> None:
 
     with pytest.raises(RuntimeError):
         service.exchange_code("code123")
+
+
+def test_exchange_code_raises_when_not_configured() -> None:
+    settings = Settings()
+    settings.oauth_token_url = ""
+    service = OAuthService(settings)
+    with pytest.raises(RuntimeError):
+        service.exchange_code("any")
