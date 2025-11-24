@@ -41,5 +41,8 @@ def test_split_with_pydub_path(monkeypatch, tmp_path: Path) -> None:
 
     chunks = chunker.split(audio)
 
-    assert len(chunks) == 3  # 1500ms broken into 3 parts of 500ms
+    # Audio de 1500ms com chunk de 1000ms gera 2 partes (500ms cada no fake)
+    assert len(chunks) == 2
+    assert chunks[0].duration_sec == pytest.approx(0.5, rel=1e-2)
+    assert chunks[1].start_sec == pytest.approx(1.0, rel=1e-3)
     assert all(chunk.path.exists() for chunk in chunks)
