@@ -49,3 +49,26 @@ def test_read_store_handles_corrupted_json(tmp_path: Path) -> None:
     store.write_text("{invalid", encoding="utf-8")
     service = SessionService(store, ttl_minutes=1)
     assert service._read_store() == {}
+
+
+def test_invalidate_session_removes_from_store(tmp_path: Path) -> None:
+    service = SessionService(tmp_path / "store.json", ttl_minutes=1)
+    session_id = service.create_session(tokens={"t": 1})
+
+    service.invalidate_session(session_id)
+
+    assert service.get_session(session_id) is None
+    assert json.loads((tmp_path / "store.json").read_text(encoding="utf-8")) == {}
+
+
+def test_remove_expired_cleans_stale_entries(monkeypatch, tmp_path: Path) -> None:
+    store = tmp_path / "store.json"
+    service = SessionService(store, ttl_minutes=0)
+    old_time = 100.0
+    monkeypatch.setattr("application.services.session_service.time.time", lambda: old_time)
+    session_id = service.create_session(tokens={"t": 1})
+    # advance time beyond ttl
+    monkeypatch.setattr("application.services.session_service.time.time", lambda: old_time + 10)
+    data = service._read_store()
+    cleaned = service._remove_expired(data)
+    assert session_id not in cleaned

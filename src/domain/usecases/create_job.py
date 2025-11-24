@@ -51,11 +51,15 @@ class CreateJobFromInbox:
         if template_id and "delivery_template" not in metadata:
             metadata["delivery_template"] = str(template_id)
             metadata["delivery_template_updated_at"] = datetime.now(timezone.utc).isoformat()
-        preferred_locale = data.metadata.get("delivery_locale") or profile_meta.get("default_locale") or profile_meta.get("language")
+        preferred_locale = (
+            metadata.get("delivery_locale") or profile_meta.get("default_locale") or profile_meta.get("language")
+        )
         normalized_locale = _normalize_locale_code(preferred_locale)
-        if normalized_locale:
-            metadata["delivery_locale"] = normalized_locale
-            metadata["delivery_locale_updated_at"] = datetime.now(timezone.utc).isoformat()
+        if preferred_locale:
+            timestamp = datetime.now(timezone.utc).isoformat()
+            if normalized_locale:
+                metadata["delivery_locale"] = normalized_locale
+            metadata["delivery_locale_updated_at"] = timestamp
         job = Job(
             id=job_id,
             source_path=data.source_path,

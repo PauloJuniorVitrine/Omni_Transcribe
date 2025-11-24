@@ -82,3 +82,26 @@ def test_load_integration_secrets_handles_invalid_json(tmp_path: Path) -> None:
     service = WebhookService(settings)
 
     assert service._resolve_secret("other") == settings.webhook_secret
+
+
+def test_resolve_secret_prefers_integration_file(tmp_path: Path) -> None:
+    secrets_path = tmp_path / "secrets.json"
+    secrets_path.write_text(json.dumps({"partner": "abc123"}), encoding="utf-8")
+    settings = _settings(tmp_path)
+    settings.webhook_integrations_path = secrets_path
+    service = WebhookService(settings)
+
+    assert service._resolve_secret("partner") == "abc123"
+
+
+def test_verify_rejects_timestamp_out_of_window(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    settings.webhook_signature_tolerance_sec = 1
+    service = WebhookService(settings)
+    now = int(time.time()) - 10
+    payload = b"body"
+    import hmac, hashlib
+
+    sig = hmac.new(settings.webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+    with pytest.raises(WebhookValidationError):
+        service.verify(payload, sig, timestamp_header=str(now))

@@ -54,3 +54,25 @@ def test_filter_excludes_when_fragment_missing() -> None:
 
     assert result.total == 0
     assert result.logs == []
+
+
+def test_query_paginates_and_flags_has_more() -> None:
+    entries = [_entry("j", f"event-{idx}", LogLevel.INFO) for idx in range(3)]
+    service = JobLogService(_Repo(entries))
+
+    result = service.query("j", level="", event_contains="", page=1, page_size=2, include_all=False)
+
+    assert result.page == 1
+    assert result.page_size == 2
+    assert result.has_more is True
+    assert len(result.logs) == 2
+
+
+def test_serialize_returns_expected_fields() -> None:
+    entry = _entry("job-1", "event", LogLevel.WARNING)
+    payload = JobLogService.serialize(entry)
+
+    assert payload["job_id"] == "job-1"
+    assert payload["event"] == "event"
+    assert payload["level"] == LogLevel.WARNING.value
+    assert "timestamp" in payload

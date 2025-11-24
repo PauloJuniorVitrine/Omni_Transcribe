@@ -57,3 +57,31 @@ def test_chatgpt_service_applies_profile_rules_and_masks_pii(tmp_path) -> None:
     payload = json.loads(user_prompt)
     assert payload["profile_meta"]["post_edit"]["anonymize_pii"] is True
     assert payload["transcription"]["text"] == transcription.text
+
+
+def test_chatgpt_service_uses_transcription_segments_when_missing_payload(tmp_path) -> None:
+    class EmptySegmentsClient(StubChatClient):
+        def complete(self, *, system_prompt: str, user_prompt: str, response_format: str = "json_object") -> str:
+            self.last_request = (system_prompt, user_prompt)
+            return json.dumps({"text": "kept"})
+
+    profile = Profile(id="geral", meta={}, prompt_body="body")
+    transcription = TranscriptionResult(
+        text="Original text",
+        segments=[Segment(id=7, start=1.0, end=2.5, text="segment text")],
+        language="en",
+        duration_sec=2.5,
+        engine="openai",
+        metadata={},
+    )
+    job = Job(id="job2", source_path=tmp_path / "audio.wav", profile_id="geral")
+
+    client = EmptySegmentsClient()
+    service = ChatGptPostEditingService(client)
+
+    result = service.run(job, profile, transcription)
+
+    assert result.text == "kept"
+    assert len(result.segments) == 1
+    assert result.segments[0].id == 7
+    assert result.segments[0].text == "segment text"

@@ -37,8 +37,10 @@ class DeliveryTemplateRegistry:
             resolved = str(path.resolve())
             document = self._loaded_paths.get(resolved)
             if not document:
-                document = self._load_template(path)
-            templates.append(document)
+                document_id = self._load_template(path)
+                document = self._base_templates.get(document_id)
+            if document:
+                templates.append(document)
         self._list_cache = templates
         return list(templates)
 
@@ -49,8 +51,8 @@ class DeliveryTemplateRegistry:
             path = self.base_dir / f"{candidate}.template.txt"
             if not path.exists():
                 path = self.base_dir / f"{self.default_template_id}.template.txt"
-            document = self._load_template(path)
-            candidate = document.id
+            loaded_id = self._load_template(path)
+            candidate = loaded_id
         return self._base_templates[candidate]
 
     @property
@@ -81,8 +83,11 @@ class DeliveryTemplateRegistry:
         normalized = value.strip().replace("_", "-").lower()
         return normalized or None
 
-    def _load_template(self, path: Path) -> DeliveryTemplate:
-        """Carrega um template e registra em _base_templates usando o ID lógico correto."""
+    def _load_template(self, path: Path) -> str:
+        """
+        Carrega um template e registra em _base_templates usando o ID lógico correto.
+        Retorna o identificador utilizado.
+        """
         if not path.exists():
             raise FileNotFoundError(f"Template nao encontrado: {path}")
         raw = path.read_text(encoding="utf-8")
@@ -120,7 +125,7 @@ class DeliveryTemplateRegistry:
             if stem_id:
                 self._base_templates.setdefault(stem_id, document)
         self._invalidate_cache()
-        return document
+        return template_id
 
     def _invalidate_cache(self) -> None:
         self._list_cache = None
@@ -149,7 +154,9 @@ class DeliveryTemplateRegistry:
         for path in self.base_dir.rglob(f"{slug}.template.txt"):
             resolved = str(path.resolve())
             if resolved not in self._loaded_paths:
-                self._load_template(path)
+                loaded_id = self._load_template(path)
+                if (loaded_id, normalized_lang) in self._localized_templates:
+                    return self._localized_templates[(loaded_id, normalized_lang)]
         if key in self._localized_templates:
             return self._localized_templates[key]
         prefix = normalized_lang.split("-")[0]

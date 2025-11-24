@@ -80,3 +80,20 @@ def test_get_localized_returns_none_for_missing_language(tmp_path: Path) -> None
     assert registry._get_localized("id", "") is None  # type: ignore[attr-defined]
     # language sem template correspondente
     assert registry._get_localized("id", "fr-FR") is None  # type: ignore[attr-defined]
+
+
+def test_get_localized_falls_back_to_prefix(tmp_path: Path) -> None:
+    pt_dir = tmp_path / "pt"
+    localized_path = pt_dir / "default.template.txt"
+    _write_template(localized_path, "---\nid: default\nlocale: pt\n---\nPT body")
+    registry = DeliveryTemplateRegistry(tmp_path)
+
+    rendered = registry.render(None, {"transcript": "oi"}, language="pt-BR")
+
+    assert "PT body" in rendered
+
+
+def test_load_template_raises_for_missing_file(tmp_path: Path) -> None:
+    registry = DeliveryTemplateRegistry(tmp_path)
+    with pytest.raises(FileNotFoundError):
+        registry._load_template(tmp_path / "absent.template.txt")  # type: ignore[attr-defined]

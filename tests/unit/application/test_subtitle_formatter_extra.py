@@ -34,3 +34,14 @@ def test_empty_text_returns_blank_entry() -> None:
 
     assert "WEBVTT" in vtt
     assert vtt.strip().endswith("")
+
+
+def test_format_timestamp_includes_milliseconds() -> None:
+    formatter = SubtitleFormatter()
+    profile = _profile()
+    segments = [Segment(id=1, start=1.234, end=2.345, text="hi", speaker=None)]
+
+    output = formatter.to_srt(segments, profile)
+
+    assert "00:00:01,234" in output
+    assert "00:00:02,345" in output

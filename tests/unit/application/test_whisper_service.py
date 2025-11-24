@@ -114,3 +114,35 @@ def test_whisper_service_chunks_large_file(tmp_path: Path) -> None:
     assert len(result.segments) == 2
     assert pytest.approx(result.segments[1].start, rel=1e-3) == 5.0
     assert result.metadata["chunked"] is True
+
+
+def test_whisper_service_handles_stat_error_without_chunking(monkeypatch, tmp_path: Path) -> None:
+    audio = tmp_path / "missing.wav"  # file will not be created
+    job = Job(id="job3", source_path=audio, profile_id="geral", engine=EngineType.OPENAI)
+    profile = Profile(id="geral", meta={}, prompt_body="body")
+
+    class _Client(StubAsrClient):
+        def transcribe(self, *, file_path: Path, language: str | None, task: str):
+            return {
+                "text": "ok",
+                "segments": [],
+                "language": "en",
+                "duration": 1.0,
+            }
+
+    client = _Client()
+
+    # chunker provided, but stat will raise and _should_chunk must return False
+    class _Chunker:
+        def split(self, file_path: Path):
+            raise AssertionError("Should not chunk when stat fails")
+
+    def _stat_raises(self):
+        raise OSError("stat failed")
+
+    monkeypatch.setattr(Path, "stat", _stat_raises, raising=False)
+    service = WhisperService({"openai": client}, chunker=_Chunker(), chunk_trigger_mb=1)
+
+    result = service.run(job, profile)
+
+    assert result.text == "ok"
