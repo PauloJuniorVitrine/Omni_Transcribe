@@ -15,12 +15,20 @@ datas = [
     ("profiles", "profiles"),
 ]
 
+# Garantimos empacotamento do pacote interfaces e submódulos críticos.
+hiddenimports = [
+    "interfaces",
+    "interfaces.http.app",
+    "interfaces.http.auth_routes",
+    "interfaces.http.webhook_routes",
+]
+
 a = Analysis(
     ["launcher_gui.py"],
     pathex=pathex,
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
