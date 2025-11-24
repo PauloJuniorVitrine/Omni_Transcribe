@@ -12,6 +12,7 @@ def test_run_job_exits_when_missing_arguments(monkeypatch):
             self.create_job_use_case = None
             self.pipeline_use_case = None
             self.retry_use_case = None
+            self.settings = type("S", (), {"asr_engine": "openai"})()
 
     monkeypatch.setattr(run_job, "get_container", lambda: _Container())
     monkeypatch.setattr("sys.argv", ["run_job"])
