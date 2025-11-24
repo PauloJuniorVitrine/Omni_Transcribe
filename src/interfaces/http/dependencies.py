@@ -54,6 +54,8 @@ async def require_active_session(
     session_service: SessionService = Depends(get_session_service),
 ) -> Dict[str, str]:
     settings = get_app_settings()
+    if not hasattr(session_service, "get_session"):
+        session_service = get_session_service()
     test_mode = os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1" or getattr(settings, "test_mode", False)
     if test_mode and request.url.path.startswith("/jobs/upload"):
         return {"user": "test", "session_id": "test", "csrf_token": "test"}
