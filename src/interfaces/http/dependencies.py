@@ -55,7 +55,7 @@ async def require_active_session(
 ) -> Dict[str, str]:
     settings = get_app_settings()
     test_mode = os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1" or getattr(settings, "test_mode", False)
-    if test_mode:
+    if test_mode and request.url.path.startswith("/jobs/upload"):
         return {"user": "test", "session_id": "test", "csrf_token": "test"}
 
     session_id = request.cookies.get("session_id")
