@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import os
+import os
 from typing import Dict, Tuple
 
 from fastapi import Depends, HTTPException, Request
@@ -53,10 +54,13 @@ async def require_active_session(
     request: Request,
     session_service: SessionService = Depends(get_session_service),
 ) -> Dict[str, str]:
-    # In test mode we bypass session/CSRF only for upload flow to keep integration tests simple.
-    if (os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1") and request.url.path.startswith(
-        "/jobs/upload"
-    ):
+    test_mode = (
+        os.getenv("TEST_MODE") == "1"
+        or os.getenv("OMNI_TEST_MODE") == "1"
+        or getattr(get_app_settings(), "test_mode", False)
+    )
+    # Em modo de teste, liberamos apenas o fluxo de upload para não exigir sessão/CSRF
+    if test_mode and request.url.path.startswith("/jobs/upload"):
         return {"user": "test", "session_id": "test", "csrf_token": "test"}
 
     session_id = request.cookies.get("session_id")
