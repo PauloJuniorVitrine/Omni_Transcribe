@@ -735,3 +735,10 @@
 {"timestamp": "2025-11-23T16:50:17.331610+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 0, "limit": 100}}
 {"timestamp": "2025-11-23T16:50:17.336146+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 0, "limit": 5}}
 {"timestamp": "2025-11-23T16:50:17.619028+00:00", "event": "artifact.download.success", "payload": {"job_id": "job-e2e", "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-e2e\\job-e2e_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-24T01:03:44.004844+00:00", "event": "artifact.download.success", "payload": {"job_id": "f87f20ca7b4d4684b5ca15772925a35a", "path": "C:\\Users\\User\\AppData\\Local\\Temp\\pytest-of-User\\pytest-421\\test_upload_creates_job_and_do0\\output\\f87f20ca7b4d4684b5ca15772925a35a\\f87f20ca7b4d4684b5ca15772925a35a_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-24T01:03:46.567825+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-http\\job-http_v1.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-24T01:03:46.689636+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-24T01:03:46.707225+00:00", "event": "dashboard.incidents.requested", "payload": {"count": 2, "limit": 5}}
+{"timestamp": "2025-11-24T01:03:48.907437+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-download-rate\\rate.txt", "extension": ".txt"}}
+{"timestamp": "2025-11-24T01:03:49.092710+00:00", "event": "dashboard.summary.requested", "payload": {"total": 2, "awaiting_review": 1, "limit": 100}}
+{"timestamp": "2025-11-24T01:03:49.106902+00:00", "event": "artifact.download.success", "payload": {"job_id": null, "path": "C:\\Users\\User\\Desktop\\Nova pasta\\PROJETOS\\Omni Transcribe\\output\\job-rate\\file.txt", "extension": ".txt"}}
