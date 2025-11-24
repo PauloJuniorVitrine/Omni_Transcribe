@@ -4,7 +4,10 @@
 PyInstaller spec for TranscribeFlow.
 - pathex inclui src/ para resolver imports de interfaces/http/etc.
 - datas embute templates, assets estáticos e perfis de prompt.
+- hiddenimports coleta recursivamente o pacote interfaces para evitar ModuleNotFoundError.
 """
+
+from PyInstaller.utils.hooks import collect_submodules
 
 block_cipher = None
 
@@ -17,10 +20,8 @@ datas = [
 
 # Garantimos empacotamento do pacote interfaces e submódulos críticos.
 hiddenimports = [
-    "interfaces",
-    "interfaces.http.app",
-    "interfaces.http.auth_routes",
-    "interfaces.http.webhook_routes",
+    # Garante todos os submódulos do pacote interfaces (http/web/cli)
+    *collect_submodules("interfaces"),
 ]
 
 a = Analysis(
