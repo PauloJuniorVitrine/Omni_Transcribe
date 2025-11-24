@@ -32,7 +32,7 @@ def _job(tmp_path: Path) -> Job:
 
 
 def _profile(disclaimers=None, meta=None):  # noqa: ANN001
-    return Profile(id="p", name="Profile", meta=meta or {}, disclaimers=disclaimers or [])
+    return Profile(id="p", meta=meta or {}, prompt_body="Prompt", disclaimers=disclaimers or [])
 
 
 def _post_edit():
