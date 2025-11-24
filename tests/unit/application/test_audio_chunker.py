@@ -43,8 +43,8 @@ def test_split_wav_fallback_multiple_chunks(tmp_path: Path, monkeypatch) -> None
     chunks = chunker.split(source)
 
     assert len(chunks) == 2
-    assert pytest.approx(chunks[0].duration_sec, rel=1e-2) <= 1.0
-    assert pytest.approx(chunks[1].start_sec, rel=1e-3) == pytest.approx(chunks[0].duration_sec, rel=1e-3)
+    assert chunks[0].duration_sec == pytest.approx(1.0, rel=1e-2)
+    assert chunks[1].start_sec == pytest.approx(chunks[0].duration_sec, rel=1e-3)
 
 
 def test_split_non_wav_without_pydub_raises(tmp_path: Path, monkeypatch) -> None:
