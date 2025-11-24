@@ -38,7 +38,16 @@ def _setup_client(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Test
     fake_settings = type(
         "Settings",
         (),
-        {"base_output_dir": Path("output"), "base_backup_dir": Path("backup"), "max_request_body_mb": 100},
+        {
+            "app_env": "test",
+            "base_output_dir": tmp_path / "output",
+            "base_backup_dir": tmp_path / "backup",
+            "max_request_body_mb": 100,
+            "openai_api_key": "",
+            "chatgpt_api_key": "",
+            "openai_chunk_trigger_mb": 200,
+            "max_audio_size_mb": 2048,
+        },
     )()
     monkeypatch.setattr(http_app, "get_settings", lambda: fake_settings)
     http_app._app_settings = fake_settings  # type: ignore[attr-defined]
