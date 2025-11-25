@@ -25,12 +25,16 @@ class WhisperService(AsrService):
         default_language: str = "auto",
         chunker: Optional[AudioChunker] = None,
         chunk_trigger_mb: int = 200,
+        response_format: str = "verbose_json",
+        chunking_strategy: Optional[str] = None,
     ) -> None:
         self.engine_clients = engine_clients
         self.retry_executor = retry_executor or RetryExecutor(RetryConfig())
         self.default_language = default_language
         self.chunker = chunker
         self.chunk_trigger_bytes = chunk_trigger_mb * 1024 * 1024
+        self.response_format = response_format
+        self.chunking_strategy = chunking_strategy
 
     def run(self, job: Job, profile: Profile, task: str = "transcribe") -> TranscriptionResult:
         engine_key = job.engine.value
@@ -56,10 +60,18 @@ class WhisperService(AsrService):
         client: AsrEngineClient,
     ) -> TranscriptionResult:
         def _call() -> Dict:
-            return client.transcribe(file_path=file_path, language=language, task=task)
+            return client.transcribe(
+                file_path=file_path,
+                language=language,
+                task=task,
+                response_format=self.response_format,
+                chunking_strategy=self.chunking_strategy,
+            )
 
         raw = self.retry_executor.run(_call)
-        return self._build_result(raw, engine_key, language, task)
+        result = self._build_result(raw, engine_key, language, task)
+        result.metadata["chunk_count"] = 1
+        return result
 
     def _run_chunked(
         self,
@@ -78,7 +90,13 @@ class WhisperService(AsrService):
         try:
             for chunk in chunks:
                 raw = self.retry_executor.run(
-                    lambda p=chunk.path: client.transcribe(file_path=p, language=language, task=task)
+                    lambda p=chunk.path: client.transcribe(
+                        file_path=p,
+                        language=language,
+                        task=task,
+                        response_format=self.response_format,
+                        chunking_strategy=self.chunking_strategy,
+                    )
                 )
                 chunk_result = self._build_result(raw, job.engine.value, language, task)
                 texts.append(chunk_result.text)
@@ -108,7 +126,12 @@ class WhisperService(AsrService):
             language=language_detected,
             duration_sec=duration,
             engine=job.engine.value,
-            metadata={"engine": job.engine.value, "task": task, "chunked": True},
+            metadata={
+                "engine": job.engine.value,
+                "task": task,
+                "chunked": True,
+                "chunk_count": len(chunks),
+            },
         )
 
     def _should_chunk(self, file_path: Path) -> bool:
@@ -124,7 +147,7 @@ class WhisperService(AsrService):
         text = raw.get("text", "")
         language_detected = raw.get("language") or language or self.default_language
         duration = raw.get("duration") or raw.get("duration_sec")
-        metadata = {"engine": engine_key, "task": task}
+        metadata = {"engine": engine_key, "task": task, "chunk_count": 0}
         return TranscriptionResult(
             text=text,
             segments=segments,

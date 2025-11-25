@@ -55,6 +55,8 @@ def test_compose_accuracy_snapshot_returns_badge():
 
 
 def test_enforce_download_rate(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
     monkeypatch.setattr(http_app, "_DOWNLOAD_RATE_LIMIT", 2)
     http_app._download_tracker.clear()
     http_app._enforce_download_rate("session-id")

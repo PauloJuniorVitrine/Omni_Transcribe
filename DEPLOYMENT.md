@@ -13,6 +13,7 @@ Guia resumido para subir o TranscribeFlow em staging ou producao.
 APP_ENV=production
 CREDENTIALS_SECRET_KEY=<chave urlsafe 32 bytes>
 OPENAI_API_KEY=<chave real>
+DOWNLOAD_TOKEN_SECRET=<segredo download; se vazio usa WEBHOOK_SECRET>
 MAX_AUDIO_SIZE_MB=8192
 MAX_REQUEST_BODY_MB=2048
 OPENAI_CHUNK_TRIGGER_MB=200
@@ -77,10 +78,10 @@ python -m interfaces.cli.run_job --job-id <ID>
 - Logs: `logs/metrics.log` e `logs/alerts.log` (webhooks via ALERT_WEBHOOK_URL/METRICS_WEBHOOK_URL)
 
 ## 6. CI/CD
-- Workflow `.github/workflows/system-validation.yml` roda: validate_secrets → SAST/secret scan (Bandit, Trivy, ESLint) → unit/integration → e2e → load → build exe → installer → smoke → publish.
-- Build: gera `TranscribeFlow.exe` e `TranscribeFlow-<versao>.exe` (tag ou `ci-<run>`). Installer é empacotado com ambos.
-- Assinatura opcional: defina `SIGNING_CERT_BASE64` (PFX base64) e `SIGNING_CERT_PASSWORD`; passo de assinatura roda no Windows runner.
-- Secrets requeridos: `CREDENTIALS_SECRET_KEY`, `OPENAI_API_KEY`; opcionais: `SIGNING_CERT_BASE64`, `SIGNING_CERT_PASSWORD`, `RUNTIME_CREDENTIALS_KEY`, `ALERT_WEBHOOK_URL`.
+- O workflow central (`.github/workflows/ci-cd.yml`) executa backend (ruff + pytest), frontend (eslint + jest + read-only `npm run typecheck:contracts`), e2e (Playwright + stub), load (k6 smoke contra stub), e build-windows (PyInstaller + NSIS). Cada stage depende do anterior via `needs`.
+- Jobs backend e frontend usam cache de `pip`/`npm`; o frontend gera OpenAPI antes do tipo de contrato para manter as expectativas TS alinhadas.
+- Artefatos (cobertura, reports, dist/TranscribeFlow.exe + installer) são publicados com `if: always()` para coleta mesmo em falha.
+- Secrets obrigatórios: `OPENAI_API_KEY`, `CHATGPT_API_KEY`, `CREDENTIALS_SECRET_KEY`, `RUNTIME_CREDENTIALS_KEY`. Em produção garanta que `DOWNLOAD_TOKEN_SECRET`/`WEBHOOK_SECRET` são fortes (o app falha ao iniciar se ambos forem fracos).
 
 ## 7. Checklist pre-deploy
 - [ ] `npm run lint:js`, `npm run test:js`, `npm run test:e2e`

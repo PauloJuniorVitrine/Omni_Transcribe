@@ -66,11 +66,35 @@ class StubJobController:
         self.job_repository = repository
         self.processed: list[str] = []
 
-    def list_jobs(self, limit: int = 20):
-        return self.job_repository.list_recent(limit)
+    def list_jobs(self, limit: int = 20, page: int = 1):
+        jobs = self.job_repository.list_recent(limit * page)
+        start = (page - 1) * limit
+        return jobs[start : start + limit], False
 
     def process_job(self, job_id: str) -> None:
         self.processed.append(job_id)
+
+
+class StubJobControllerUpload:
+    def __init__(self) -> None:
+        self.job = None
+        self.processed: list[str] = []
+
+    def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
+        self.job = Job(
+            id="job-upload",
+            source_path=path,
+            profile_id=profile_id,
+            engine=engine,
+            status=JobStatus.PENDING,
+        )
+        return self.job
+
+    def process_job(self, job_id: str) -> None:
+        self.processed.append(job_id)
+
+    def list_jobs(self, limit: int = 20):
+        return [self.job] if self.job else []
 
 
 class StubReviewController:
@@ -218,27 +242,6 @@ def test_ui_process_job_handles_failure(tmp_path, monkeypatch):
 
 
 def test_upload_creates_job_and_saves_file(tmp_path, monkeypatch):
-    class StubJobControllerUpload:
-        def __init__(self) -> None:
-            self.job = None
-            self.processed: list[str] = []
-
-        def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
-            self.job = Job(
-                id="job-upload",
-                source_path=path,
-                profile_id=profile_id,
-                engine=engine,
-                status=JobStatus.PENDING,
-            )
-            return self.job
-
-        def process_job(self, job_id: str) -> None:
-            self.processed.append(job_id)
-
-        def list_jobs(self, limit: int = 20):
-            return [self.job] if self.job else []
-
     controller = StubJobControllerUpload()
     app.dependency_overrides[get_job_controller_dep] = lambda: controller
     _force_authentication()
@@ -256,8 +259,32 @@ def test_upload_creates_job_and_saves_file(tmp_path, monkeypatch):
     app.dependency_overrides.clear()
 
 
+def test_api_upload_with_token(tmp_path, monkeypatch):
+    controller = StubJobControllerUpload()
+    app.dependency_overrides[get_job_controller_dep] = lambda: controller
+    _force_authentication()
+    _override_app_settings(monkeypatch, base_input_dir=tmp_path, webhook_secret="secret")
+    client = TestClient(app)
+    token_response = client.get("/api/uploads/token?profile=geral&engine=openai")
+    assert token_response.status_code == 200
+    token_payload = token_response.json()
+    files = {"file": ("api.wav", b"data", "audio/wav")}
+    data = {
+        "token": token_payload["token"],
+        "expires": token_payload["expires"],
+        "profile": token_payload["profile"],
+        "engine": token_payload["engine"],
+    }
+    response = client.post("/api/uploads", files=files, data=data)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["job_id"] == controller.job.id
+    assert body["auto_processed"] is False
+    app.dependency_overrides.clear()
+
+
 def test_upload_auto_process_updates_accuracy_metadata(tmp_path, monkeypatch):
-    class StubJobControllerUpload:
+    class StubJobControllerUploadAccuracy:
         def __init__(self) -> None:
             self.job = None
             self.processed: list[str] = []
@@ -281,7 +308,7 @@ def test_upload_auto_process_updates_accuracy_metadata(tmp_path, monkeypatch):
         def list_jobs(self, limit: int = 20):
             return [self.job] if self.job else []
 
-    controller = StubJobControllerUpload()
+    controller = StubJobControllerUploadAccuracy()
     app.dependency_overrides[get_job_controller_dep] = lambda: controller
     _force_authentication()
     _override_app_settings(monkeypatch, base_input_dir=tmp_path)
@@ -543,6 +570,8 @@ def test_api_job_logs_requires_session(tmp_path, monkeypatch):
     app.dependency_overrides[get_job_log_service] = lambda: _make_log_service(entries)
     # Não força sessão
     _override_app_settings(monkeypatch)
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
 
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get(f"/api/jobs/{job.id}/logs")
@@ -2067,6 +2096,8 @@ def test_routes_require_auth_without_session(tmp_path, monkeypatch):
     app.dependency_overrides[get_job_controller_dep] = lambda: job_controller
     app.dependency_overrides[get_review_controller_dep] = lambda: review_controller
     _override_app_settings(monkeypatch)
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
 
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/")

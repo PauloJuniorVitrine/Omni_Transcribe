@@ -54,7 +54,7 @@ def test_watch_inbox_chunking_exception_falls_back_to_full_file(tmp_path, monkey
         def split(self, _p):
             raise RuntimeError("chunk fail")
 
-    monkeypatch.setattr("interfaces.cli.watch_inbox.AudioChunker", _Chunker)
+    monkeypatch.setattr("application.services.audio_chunker.AudioChunker", _Chunker)
     handler = InboxEventHandler(container)
     event = types.SimpleNamespace(is_directory=False, src_path=str(path))
     handler.on_created(event)

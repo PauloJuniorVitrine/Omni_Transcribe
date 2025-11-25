@@ -47,8 +47,9 @@ Habilitar lint/testes para `src/interfaces/web/static/js/*` garantindo qualidade
    - Atualizar README/CHANGE_SUMMARY reforçando que ambientes de dev precisam do tooling Node.
 
 ## Status atual
-- Ambiente local (CLI) **não possui npm** → pendente até que seja instalado ou executado em CI.  
-- Após provisionamento, seguir etapas acima e registrar resultados em `docs/test_validation_{EXEC_ID}.md`.
+- O `package.json` já define toda a cadeia npm (ESLint, Jest, geração de OpenAPI/TS) e está incluído no pipeline principal (`npm run lint:js`, `npm run test:js`, `npm run typecheck:contracts`, `npm run test:e2e`).  
+- A suíte de testes em `tests/frontend/*.test.js` já cobre `jobs.js`, `settings.js`, `dashboard.js` e outros módulos estáticos; basta instalar as dependências (`node 20`, `npm ci`) e executar os scripts citados.  
+- Ao rodar localmente, confirme `node -v`/`npm -v`, execute `npm ci`, depois `npm run lint:js && npm run test:js -- --runInBand --ci` para validar o front-end antes de qualquer deploy.
 
 ## Dependências / Próximos Passos
 1. Alocar ambiente com Node >= 20 (ex.: container `node:20-bullseye` ou workstation dev).  

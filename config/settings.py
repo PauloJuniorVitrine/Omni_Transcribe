@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     openai_whisper_api_key: str = ""
     openai_base_url: str = Field(default="https://api.openai.com/v1", alias="OPENAI_BASE_URL")
     openai_whisper_model: str = "gpt-4o-mini-transcribe"
+    openai_whisper_response_format: str = "verbose_json"
+    openai_whisper_chunking_strategy: str = ""
     chatgpt_api_key: str = ""
     post_edit_model: str = Field(default="gpt-4.1", alias="POST_EDIT_MODEL")
     chatgpt_model: str = "gpt-4.1"
@@ -62,7 +64,7 @@ class Settings(BaseSettings):
     watcher_poll_interval: int = Field(default=5, alias="WATCHER_POLL_INTERVAL")
     max_audio_size_mb: int = Field(default=12288, alias="MAX_AUDIO_SIZE_MB")  # ~12 GB headroom
     max_request_body_mb: int = Field(default=2048, alias="MAX_REQUEST_BODY_MB")  # 2 GB uploads via GUI
-    openai_chunk_trigger_mb: int = Field(default=200, alias="OPENAI_CHUNK_TRIGGER_MB")
+    openai_chunk_trigger_mb: int = Field(default=25, alias="OPENAI_CHUNK_TRIGGER_MB")
     openai_chunk_duration_sec: int = Field(default=900, alias="OPENAI_CHUNK_DURATION_SEC")
     allowed_download_extensions: List[str] = Field(
         default_factory=lambda: ["txt", "srt", "vtt", "json", "zip"], alias="ALLOWED_DOWNLOAD_EXTENSIONS"
@@ -77,6 +79,7 @@ class Settings(BaseSettings):
 
     # Webhooks
     webhook_secret: str = Field(default="changeme", alias="WEBHOOK_SECRET")
+    download_token_secret: str = Field(default="", alias="DOWNLOAD_TOKEN_SECRET")
     webhook_integrations_path: Path = Field(
         default=Path("config/webhook_integrations.json"), alias="WEBHOOK_INTEGRATIONS_PATH"
     )

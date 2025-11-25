@@ -1,6 +1,8 @@
 ---
 id: briefing
-name: Briefing Curto
-description: Remove cabeçalho e mantém apenas o texto editado.
+name: Briefing
+description: Template personalizado para briefs.
 ---
+{{header}}
+
 {{transcript}}

@@ -19,6 +19,8 @@ from domain.entities.value_objects import EngineType, JobStatus, LogLevel
 
 
 def test_enforce_download_rate_limits_requests(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
     http_app._download_tracker.clear()
     monkeypatch.setattr(http_app, "_DOWNLOAD_RATE_LIMIT", 2, raising=False)
     monkeypatch.setattr(http_app, "_DOWNLOAD_RATE_WINDOW_SEC", 3600, raising=False)
@@ -48,6 +50,15 @@ def test_validate_download_token_accepts_and_rejects(monkeypatch):
 
     with pytest.raises(HTTPException):
         http_app._validate_download_token(path=path, token="invalid", expires=expires)
+
+
+def test_sign_and_validate_upload_token(monkeypatch):
+    settings = SimpleNamespace(webhook_secret="secret")
+    monkeypatch.setattr(http_app, "get_settings", lambda: settings)
+    token, expires = http_app._sign_upload_token(profile="geral", engine="openai", ttl_minutes=1)
+    http_app._validate_upload_token(token=token, expires=expires, profile="geral", engine="openai")
+    with pytest.raises(HTTPException):
+        http_app._validate_upload_token(token="bad", expires=expires, profile="geral", engine="openai")
 
 
 def test_get_flash_message_and_safe_int():

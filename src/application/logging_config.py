@@ -23,7 +23,6 @@ class JsonLogFormatter(logging.Formatter):
 def configure_logging(level: str = "INFO") -> logging.Logger:
     global _configured
     logger = logging.getLogger("transcribeflow")
-    # Always honor requested level, but avoid duplicating handlers.
     logger.setLevel(level)
     root = logging.getLogger()
     root.setLevel(level)
@@ -31,7 +30,13 @@ def configure_logging(level: str = "INFO") -> logging.Logger:
     if not _configured:
         handler = logging.StreamHandler()
         handler.setFormatter(JsonLogFormatter())
-        logger.addHandler(handler)
+        root.addHandler(handler)
         logger.propagate = False
+        root.propagate = False
+        for target in ("uvicorn.access", "uvicorn.error", "fastapi"):
+            log = logging.getLogger(target)
+            log.handlers = [handler]
+            log.setLevel(level)
+            log.propagate = False
         _configured = True
     return logger

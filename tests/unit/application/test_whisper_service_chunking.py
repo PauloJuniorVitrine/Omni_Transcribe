@@ -24,7 +24,15 @@ class _StubAsrClient:
     def __init__(self) -> None:
         self.calls: list[Path] = []
 
-    def transcribe(self, *, file_path: Path, language: str | None, task: str):
+    def transcribe(
+        self,
+        *,
+        file_path: Path,
+        language: str | None,
+        task: str,
+        response_format: str | None = None,
+        chunking_strategy: str | None = None,
+    ):
         self.calls.append(file_path)
         idx = len(self.calls) - 1
         return {

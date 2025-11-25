@@ -2,28 +2,34 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <title>TranscribeFlow</title>
+    <title>Omni Transcriber</title>
     <meta name="csrf-token" content="{{ csrf_token | default('', true) }}" />
     <link rel="stylesheet" href="/static/theme.css" />
     <link rel="stylesheet" href="/static/styles.css" />
     <script type="module" src="/static/app.js"></script>
   </head>
   <body>
-    <header>
-      {% include "components/branding.html" %}
-      <nav class="main-nav">
-        <a href="/">Jobs</a>
-        <a href="/ui/theme-preview">Tema</a>
-        <a href="/settings/api">Configuracoes</a>
-        <a href="/settings/templates">Templates</a>
-        <a href="/settings/flags">Flags</a>
+    {% set current_path = request.url.path if request else "" %}
+    <header class="app-header">
+      <div class="header-left">
+        {% include "components/branding.html" %}
+        <button class="nav-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" data-toggle-nav>
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <nav class="main-nav" data-nav>
+        <a class="nav-pill {% if current_path == '/' or current_path.startswith('/jobs') %}is-active{% endif %}" href="/">Jobs</a>
+        <a class="nav-pill {% if current_path.startswith('/ui/theme-preview') %}is-active{% endif %}" href="/ui/theme-preview">Tema</a>
+        <a class="nav-pill {% if current_path.startswith('/settings/api') %}is-active{% endif %}" href="/settings/api">Configuracoes</a>
+        <a class="nav-pill {% if current_path.startswith('/settings/templates') %}is-active{% endif %}" href="/settings/templates">Templates</a>
+        <a class="nav-pill {% if current_path.startswith('/settings/flags') %}is-active{% endif %}" href="/settings/flags">Flags</a>
       </nav>
       <div class="session-indicator">
         {% if header_session %}
-        <span class="session-avatar">{{ header_session.initials }}</span>
+        <div class="session-avatar">{{ header_session.initials }}</div>
         <div class="session-meta">
-          <strong>{{ header_session.label }}</strong>
-          <small>{{ header_session.caption }}</small>
+          <strong class="session-name">Sessao ativa</strong>
+          <span class="session-status">{{ header_session.label }}</span>
         </div>
         {% else %}
         <a href="/auth/login/browser" class="btn btn-tertiary">Entrar</a>

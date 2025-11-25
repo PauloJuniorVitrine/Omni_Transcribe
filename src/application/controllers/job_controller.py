@@ -26,8 +26,15 @@ class JobController:
         self.pipeline_use_case = pipeline_use_case
         self.retry_use_case = retry_use_case
 
-    def list_jobs(self, limit: int = 20) -> List[Job]:
-        return self.job_repository.list_recent(limit)
+    def list_jobs(self, limit: int = 20, page: int = 1) -> tuple[List[Job], bool]:
+        page = max(page, 1)
+        limit = max(limit, 1)
+        window = (limit * page) + 1  # fetch a bit extra to detect next page
+        jobs = self.job_repository.list_recent(window)
+        start = (page - 1) * limit
+        page_items = jobs[start : start + limit]
+        has_more = len(jobs) > start + limit
+        return page_items, has_more
 
     def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
         input_data = CreateJobInput(source_path=path, profile_id=profile_id, engine=engine)

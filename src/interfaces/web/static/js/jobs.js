@@ -1,4 +1,4 @@
-﻿
+
 import { setSurfaceLoading, showToast, updateLabelState, withCsrf } from "./core.js";
 
 function bindArtifactPreview() {
@@ -139,6 +139,8 @@ export function initJobDetail() {
   bindProcessActions();
   bindTemplateSelector();
   bindJobLogs();
+  bindReactiveFilters();
+  bindTemplatePreview();
 }
 
 function bindTemplateSelector() {
@@ -299,4 +301,306 @@ function bindJobLogs() {
   });
 
   fetchLogs(1);
+}
+
+const JOBS_ENDPOINT = "/api/dashboard/jobs";
+const TEMPLATE_PREVIEW_ENDPOINT = "/api/templates/preview";
+
+function bindReactiveFilters() {
+  const form = document.querySelector("form[data-jobs-form]");
+  const body = document.querySelector("[data-jobs-body]");
+  if (!form || !body) {
+    return;
+  }
+  const filtersMeta = document.querySelector("[data-filters-updated]");
+  const paginationControls = document.querySelector("[data-jobs-pagination]");
+  const currentPageLabel = paginationControls?.querySelector("[data-current-page]");
+  const pageInput = form.querySelector('input[name="page"]');
+  const limitInput = form.querySelector('input[name="limit"]');
+  const paginationButtons = document.querySelectorAll("[data-page-control]");
+  const surfaceId = form.dataset.loadingSurface || "jobs-feed";
+
+  const updateLabel = (text, state) => {
+    if (filtersMeta) {
+      updateLabelState("[data-filters-updated]", text, state);
+    }
+  };
+
+  const fetchJobs = async (targetPage = 1) => {
+    const params = new URLSearchParams(new FormData(form));
+    params.set("page", String(targetPage));
+    if (limitInput?.value) {
+      params.set("limit", limitInput.value);
+    }
+    setSurfaceLoading(surfaceId, true);
+    updateLabel("Atualizando filtros...", "loading");
+    try {
+      const response = await fetch(`${JOBS_ENDPOINT}?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("jobs-fetch-failed");
+      }
+      const payload = await response.json();
+      renderJobsTable(body, payload.jobs);
+      updateSummaryFields(payload.summary, payload.accuracy);
+      if (pageInput) {
+        pageInput.value = String(payload.page);
+      }
+      updatePaginationState(form, payload, currentPageLabel);
+      const generatedLabel = payload.generated_at
+        ? `Atualizado as ${new Date(payload.generated_at).toLocaleTimeString("pt-BR", {
+            hour12: false,
+          })}`
+        : "Atualizacao concluida";
+      updateLabel(generatedLabel, "success");
+    } catch (_error) {
+      showToast("Nao foi possivel atualizar os jobs.", "error");
+      updateLabel("Falha ao atualizar", "error");
+    } finally {
+      setSurfaceLoading(surfaceId, false);
+    }
+  };
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    fetchJobs(1);
+  });
+
+  paginationButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      const target = button.dataset.pageTarget;
+      if (!target) {
+        return;
+      }
+      const numericPage = Number(target);
+      if (Number.isNaN(numericPage)) {
+        return;
+      }
+      fetchJobs(numericPage);
+    });
+  });
+}
+
+function renderJobsTable(container, jobs) {
+  container.innerHTML = "";
+  if (!jobs.length) {
+    renderEmptyJobs(container);
+    return;
+  }
+  jobs.forEach((job) => {
+    const row = document.createElement("tr");
+    row.appendChild(createCell(job.id));
+    row.appendChild(createCell(job.source_name));
+    row.appendChild(createCell(job.profile_id));
+    const statusCell = document.createElement("td");
+    const statusBadge = document.createElement("span");
+    statusBadge.className = `badge ${statusBadgeClass(job.status)}`;
+    statusBadge.textContent = humanizeStatus(job.status);
+    statusCell.appendChild(statusBadge);
+    row.appendChild(statusCell);
+    row.appendChild(createCell(job.language || "-"));
+    row.appendChild(renderAccuracyCell(job));
+    const actionCell = document.createElement("td");
+    const link = document.createElement("a");
+    link.href = `/jobs/${job.id}`;
+    link.textContent = "Ver detalhes";
+    actionCell.appendChild(link);
+    row.appendChild(actionCell);
+    container.appendChild(row);
+  });
+}
+
+function renderEmptyJobs(container) {
+  container.innerHTML = `
+    <tr class="table-empty">
+      <td colspan="7">
+        <div class="empty-state">
+          <div class="empty-icon">OT</div>
+          <div>
+            <strong>Nenhum job encontrado ainda.</strong>
+            <p>Envie um audio na secao "Enviar audio" para comecar.</p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function createCell(value) {
+  const cell = document.createElement("td");
+  cell.textContent = value;
+  return cell;
+}
+
+function renderAccuracyCell(job) {
+  const cell = document.createElement("td");
+  const status = job.accuracy_status;
+  if (status) {
+    const badge = document.createElement("span");
+    const badgeClass =
+      status === "needs_review" ? "badge-warning" : status === "passing" ? "badge-success" : "badge";
+    badge.className = `badge ${badgeClass}`;
+    badge.textContent = status === "needs_review" ? "Rever" : status === "passing" ? "OK" : humanizeStatus(status);
+    badge.setAttribute("aria-label", `Precisao: ${badge.textContent}`);
+    cell.appendChild(badge);
+    return cell;
+  }
+  if (job.accuracy_requires_review) {
+    const badge = document.createElement("span");
+    badge.className = "badge badge-warning";
+    badge.textContent = "Revisar";
+    badge.setAttribute("aria-label", "Precisao: requer revisao");
+    cell.appendChild(badge);
+    return cell;
+  }
+  cell.textContent = "-";
+  return cell;
+}
+
+function updateSummaryFields(summary = {}, accuracy = {}) {
+  Object.entries(summary).forEach(([key, value]) => {
+    const target = document.querySelector(`[data-summary-field="${key}"]`);
+    if (target) {
+      target.textContent = String(value ?? 0);
+    }
+  });
+  const evaluated = document.querySelector(`[data-accuracy-field="evaluated"]`);
+  if (evaluated) {
+    evaluated.textContent = String(accuracy.evaluated ?? 0);
+  }
+  const needsReview = document.querySelector(`[data-accuracy-field="needs_review"]`);
+  if (needsReview) {
+    needsReview.textContent = String(accuracy.needs_review ?? 0);
+  }
+  const passing = document.querySelector(`[data-accuracy-field="passing"]`);
+  if (passing) {
+    passing.textContent = String(accuracy.passing ?? 0);
+  }
+  const scoreLabel = document.querySelector(`[data-accuracy-field="average_score"]`);
+  if (scoreLabel) {
+    scoreLabel.textContent = formatPercentage(accuracy.average_score);
+  }
+  const werLabel = document.querySelector(`[data-accuracy-field="average_wer"]`);
+  if (werLabel) {
+    werLabel.textContent = formatPercentage(accuracy.average_wer);
+  }
+}
+
+function formatPercentage(value) {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function humanizeStatus(status) {
+  if (!status) {
+    return "";
+  }
+  return status
+    .replace(/_/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function statusBadgeClass(status) {
+  switch (status) {
+    case "approved":
+      return "badge-success";
+    case "awaiting_review":
+    case "adjustments_required":
+      return "badge-warning";
+    case "failed":
+    case "rejected":
+      return "badge-danger";
+    case "processing":
+    case "asr_completed":
+    case "post_editing":
+      return "badge-INFO";
+    default:
+      return "badge";
+  }
+}
+
+function updatePaginationState(form, payload, label) {
+  const prevLink = document.querySelector("[data-page-control='prev']");
+  const nextLink = document.querySelector("[data-page-control='next']");
+  const prevPage = payload.page > 1 ? payload.page - 1 : null;
+  const nextPage = payload.has_more ? payload.page + 1 : null;
+
+  const buildHref = (pageNumber) => {
+    if (!pageNumber) {
+      return "#";
+    }
+    const params = new URLSearchParams(new FormData(form));
+    params.set("page", String(pageNumber));
+    return `/?${params.toString()}`;
+  };
+
+  const updateLink = (link, target) => {
+    if (!link) {
+      return;
+    }
+    link.dataset.pageTarget = target ? String(target) : "";
+    if (target) {
+      link.setAttribute("href", buildHref(target));
+      link.setAttribute("aria-disabled", "false");
+      link.classList.remove("btn--disabled");
+    } else {
+      link.setAttribute("href", "#");
+      link.setAttribute("aria-disabled", "true");
+      link.classList.add("btn--disabled");
+    }
+  };
+
+  updateLink(prevLink, prevPage);
+  updateLink(nextLink, nextPage);
+  if (label) {
+    label.textContent = `Pagina ${payload.page}`;
+  }
+}
+
+function bindTemplatePreview() {
+  const section = document.querySelector("[data-template-preview]");
+  if (!section) {
+    return;
+  }
+  const select = section.querySelector("[data-template-selector]");
+  const statusLabel = section.querySelector("[data-preview-updated]");
+  const output = section.querySelector("[data-template-preview-content]");
+  if (!select || !output) {
+    return;
+  }
+
+  const refreshPreview = async () => {
+    output.textContent = "Carregando preview...";
+    try {
+      const params = new URLSearchParams();
+      if (select.value) {
+        params.set("template_id", select.value);
+      }
+      const response = await fetch(`${TEMPLATE_PREVIEW_ENDPOINT}?${params.toString()}`, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("template-preview-failed");
+      }
+      const payload = await response.json();
+      output.textContent = payload.rendered.trim() || "Sem conteudo para exibir.";
+      if (statusLabel) {
+        statusLabel.textContent = `Atualizado as ${new Date().toLocaleTimeString("pt-BR", { hour12: false })}`;
+      }
+    } catch {
+      output.textContent = "Falha ao carregar preview.";
+      if (statusLabel) {
+        statusLabel.textContent = "Preview indisponivel";
+      }
+    }
+  };
+
+  select.addEventListener("change", refreshPreview);
+  refreshPreview();
 }

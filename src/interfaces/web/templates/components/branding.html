@@ -1,7 +1,13 @@
 <div class="branding">
-  <div class="logo-mark">TF</div>
+  {% if branding_logo_url %}
+  <div class="logo-image brand-avatar">
+    <img src="{{ branding_logo_url }}" alt="Omni Transcriber" />
+  </div>
+  {% else %}
+  <div class="logo-mark brand-avatar">OT</div>
+  {% endif %}
   <div class="brand-text">
-    <strong>TranscribeFlow</strong>
-    <small>Automacao de audio</small>
+    <strong>Omni Transcriber</strong>
+    <small>Flow de audio inteligente</small>
   </div>
 </div>

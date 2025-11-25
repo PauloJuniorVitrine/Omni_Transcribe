@@ -14,6 +14,7 @@ except ModuleNotFoundError:  # pragma: no cover - fallback when requests is unav
 
 METRICS_PATH = Path("logs/metrics.log")
 ALERTS_PATH = Path("logs/alerts.log")
+HISTOGRAM_PATH = Path("logs/metrics_histograms.json")
 _ALERT_WEBHOOK_URLS = [
     url.strip() for url in os.getenv("ALERT_WEBHOOK_URL", "").split(",") if url.strip()
 ]
@@ -84,4 +85,48 @@ def _post_webhooks(urls: Iterable[str], payload: Dict[str, Any]) -> None:
             continue
 
 
-__all__ = ["record_metric", "notify_alert", "load_entries", "summarize_metrics"]
+def record_histogram(
+    name: str,
+    value: float,
+    bucket_size: float = 50.0,
+    tags: Dict[str, object] | None = None,
+) -> None:
+    histogram = _load_histograms()
+    tags = tags or {}
+    tag_key = ",".join(f"{key}={tags[key]}" for key in sorted(tags))
+    bucket = int(value // bucket_size * bucket_size)
+    event_key = f"{name}|bucket_size={bucket_size}|{tag_key or 'default'}"
+    buckets = histogram.get(event_key, {})
+    bucket_label = str(bucket)
+    buckets[bucket_label] = buckets.get(bucket_label, 0) + 1
+    histogram[event_key] = buckets
+    _save_histograms(histogram)
+
+
+def load_histograms() -> Dict[str, Dict[str, int]]:
+    return _load_histograms()
+
+
+def _load_histograms() -> Dict[str, Dict[str, int]]:
+    if not HISTOGRAM_PATH.exists():
+        return {}
+    try:
+        return json.loads(HISTOGRAM_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def _save_histograms(data: Dict[str, Dict[str, int]]) -> None:
+    HISTOGRAM_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with HISTOGRAM_PATH.open("w", encoding="utf-8") as cursor:
+        cursor.write(json.dumps(data, ensure_ascii=False, indent=2))
+
+
+__all__ = [
+    "record_metric",
+    "notify_alert",
+    "load_entries",
+    "summarize_metrics",
+    "record_histogram",
+    "load_histograms",
+]

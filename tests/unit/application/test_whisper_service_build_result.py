@@ -9,7 +9,15 @@ from domain.entities.value_objects import EngineType
 
 
 class _Client:
-    def transcribe(self, *, file_path: Path, language: str | None, task: str):
+    def transcribe(
+        self,
+        *,
+        file_path: Path,
+        language: str | None,
+        task: str,
+        response_format: str | None = None,
+        chunking_strategy: str | None = None,
+    ):
         return {"text": "ok", "segments": [], "language": None, "duration": None}
 
 

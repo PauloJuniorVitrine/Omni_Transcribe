@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import os
 import socket
 import sys
 import threading
@@ -65,6 +66,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     _bootstrap_paths()
+    _ensure_streams()
     args = parse_args()
 
     # Import after sys.path bootstrap so modules resolve.
@@ -86,6 +88,16 @@ def main() -> None:
         _open_browser_later(f"http://{host}:{port}")
 
     server.run()
+
+
+def _ensure_streams() -> None:
+    """
+    Guarantee stdout/stderr exist in windowed (PyInstaller) mode so uvicorn logging works.
+    """
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w")
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w")
 
 
 if __name__ == "__main__":

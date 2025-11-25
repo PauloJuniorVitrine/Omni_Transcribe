@@ -66,9 +66,37 @@ function bindFlashToasts() {
   });
 }
 
+function bindNavToggle() {
+  const toggle = document.querySelector("[data-toggle-nav]");
+  const nav = document.querySelector("[data-nav]");
+  if (!toggle || !nav) {
+    return;
+  }
+  toggle.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(isOpen));
+  });
+}
+
+function bindFileInputs() {
+  document.querySelectorAll("[data-file-input]").forEach((wrapper) => {
+    const input = wrapper.querySelector('input[type="file"]');
+    const label = wrapper.querySelector("[data-file-name]");
+    if (!input || !label) {
+      return;
+    }
+    input.addEventListener("change", () => {
+      const file = input.files && input.files[0];
+      label.textContent = file ? file.name : "Nenhum arquivo selecionado";
+    });
+  });
+}
+
 export function initGlobal() {
   bindConfirmForms();
   bindSurfaceForms();
   bindSkeletonTriggers();
   bindFlashToasts();
+  bindNavToggle();
+  bindFileInputs();
 }

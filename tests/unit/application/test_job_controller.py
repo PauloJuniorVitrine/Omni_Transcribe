@@ -67,8 +67,9 @@ class DummyRetry:
 def test_list_jobs_returns_from_repo():
     repo = DummyJobRepo()
     controller = JobController(repo, DummyCreateJobUseCase(), None, DummyRetry())
-    jobs = controller.list_jobs()
+    jobs, has_more = controller.list_jobs()
     assert len(jobs) == 1 and jobs[0].id == "job-1"
+    assert has_more is False
 
 
 def test_ingest_file_calls_use_case():

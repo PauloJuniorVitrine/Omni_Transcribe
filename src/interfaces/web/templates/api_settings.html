@@ -95,4 +95,46 @@
     </form>
   </div>
 </section>
+
+<section class="card branding-card">
+  <div class="section-header">
+    <div>
+      <h2>Logomarca do workspace</h2>
+      <p>Imagem exibida no hero e cabecalho. Formatos: PNG, JPG, WEBP ou SVG.</p>
+    </div>
+  </div>
+  <form
+    action="/settings/branding/logo"
+    method="post"
+    enctype="multipart/form-data"
+    data-updated-label="branding"
+    class="upload-form"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}" />
+    <div class="branding-grid">
+      <label class="field">
+        <span class="field-label">Arquivo de logo</span>
+        <div class="file-field" data-file-input>
+          <input type="file" name="logo" accept=".png,.jpg,.jpeg,.webp,.svg" required />
+          <span class="file-button">Escolher arquivo</span>
+          <span class="file-name" data-file-name>Nenhum arquivo selecionado</span>
+        </div>
+        <span class="field-help">Resolucao sugerida: 256x256. Transparencia suportada.</span>
+      </label>
+      <div class="logo-preview">
+        {% if branding_logo_url %}
+        <div class="logo-image brand-avatar">
+          <img src="{{ branding_logo_url }}" alt="Logomarca atual" />
+        </div>
+        {% else %}
+        <div class="logo-mark brand-avatar">OT</div>
+        {% endif %}
+        <small>Preview da logo que aparece no dashboard.</small>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Atualizar logo</button>
+    </div>
+  </form>
+</section>
 {% endblock %}

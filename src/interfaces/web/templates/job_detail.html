@@ -266,7 +266,7 @@
     data-loading-surface="job-actions"
   >
     <input type="hidden" name="csrf_token" value="{{ csrf_token | default('', true) }}">
-    <p>Solicita o pipeline completo (ASR → pós-edição → artefatos) com base nos dados atuais.</p>
+    <p>Solicita o pipeline completo (ASR -> pos-edicao -> artefatos) com base nos dados atuais.</p>
     <button type="submit" class="btn btn-primary" data-loading="Processando...">Iniciar processamento</button>
   </form>
   <small class="process-status" data-process-status>Pronto para solicitar reprocessamento. Usa o audio atual e aplica os perfis configurados.</small>

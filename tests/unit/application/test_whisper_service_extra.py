@@ -25,7 +25,15 @@ class _FakeClient:
         self.response = response
         self.calls: List[Path] = []
 
-    def transcribe(self, *, file_path: Path, language: str | None, task: str) -> Dict:
+    def transcribe(
+        self,
+        *,
+        file_path: Path,
+        language: str | None,
+        task: str,
+        response_format: str | None = None,
+        chunking_strategy: str | None = None,
+    ) -> Dict:
         self.calls.append(file_path)
         return dict(self.response)
 

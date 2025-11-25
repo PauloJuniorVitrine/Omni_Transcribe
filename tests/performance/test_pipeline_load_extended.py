@@ -14,7 +14,7 @@ from domain.entities.value_objects import EngineType
 
 
 class _StubClient:
-    def transcribe(self, *, file_path: Path, language: str | None, task: str):
+    def transcribe(self, *, file_path: Path, language: str | None, task: str, **_kwargs):
         return {
             "text": "ok",
             "segments": [{"id": 0, "start": 0.0, "end": 1.0, "text": "ok"}],

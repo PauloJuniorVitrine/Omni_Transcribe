@@ -24,6 +24,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
       - name: Prepare artifacts dir
         run: mkdir -p artifacts
       - name: Install deps
@@ -61,6 +65,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.npm
+          key: ${{ runner.os }}-pip-npm-${{ hashFiles('requirements.txt', 'package-lock.json') }}
       - name: Prepare artifacts dir
         run: mkdir -p artifacts
       - name: Install deps
@@ -75,6 +85,8 @@ jobs:
         run: npm run test:js -- --runInBand --ci --reporters=default --reporters=jest-junit
         env:
           JEST_JUNIT_OUTPUT: artifacts/jest-report.xml
+      - name: Contracts (OpenAPI + TS)
+        run: npm run typecheck:contracts -- --ci
       - name: Upload frontend test report
         uses: actions/upload-artifact@v4
         with:

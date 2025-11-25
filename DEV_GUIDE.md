@@ -2,11 +2,15 @@
 
 ## Setup rapido
 1. Python 3.11, Node 20
-2. `python -m venv .venv && .\.venv\Scripts\activate` (ou `source .venv/bin/activate`)
+2. `py -m venv .venv`
+3. Habilite o venv:
+   - PowerShell/Windows: `.\.venv\Scripts\Activate.ps1`
+   - macOS/Linux: `source .venv/bin/activate`
 3. `pip install -r requirements.txt`
 4. `npm ci` (para testes frontend)
 5. Gerar cofre se preciso: `CREDENTIALS_SECRET_KEY=<32b_urlsafe> python scripts/generate_runtime_credentials.py`
    - Dependência relevante: `PyYAML` já está no `requirements.txt` e é usada para ler perfis/templates.
+6. Downloads assinados usam `DOWNLOAD_TOKEN_SECRET` (se ausente, caem em `WEBHOOK_SECRET`).
 
 ## Rodando
 - GUI web: `python launcher_gui.py --host 127.0.0.1 --port 8000`
@@ -24,6 +28,9 @@
 - `CREDENTIALS_SECRET_KEY` (obrigatoria para runtime_credentials)
 - `OPENAI_API_KEY` (usada por Whisper/ChatGPT)
 - `RUNTIME_CREDENTIALS_KEY` (compatibilidade com cofre)
+- `DOWNLOAD_TOKEN_SECRET` (assina links de download; se ausente usa webhook_secret)
+- ASR local: `ASR_ENGINE=local` e `LOCAL_WHISPER_MODEL_SIZE` (tiny, base, small, medium, large-v2, large-v3, turbo). `large-v3` maximiza precisão; `turbo` prioriza velocidade.
+- ASR OpenAI: `OPENAI_WHISPER_MODEL` (ex.: gpt-4o-transcribe, gpt-4o-transcribe-diarize), `OPENAI_WHISPER_RESPONSE_FORMAT` (verbose_json/text/json/diarized_json), `OPENAI_WHISPER_CHUNKING_STRATEGY` (ex.: auto para diarize).
 - Pastas: BASE_INPUT_DIR, BASE_OUTPUT_DIR, BASE_PROCESSING_DIR, BASE_BACKUP_DIR, BASE_REJECTED_DIR, CSV_LOG_PATH
 - Limites/chunking: MAX_AUDIO_SIZE_MB, MAX_REQUEST_BODY_MB, OPENAI_CHUNK_TRIGGER_MB, OPENAI_CHUNK_DURATION_SEC
 - Outros: ACCURACY_THRESHOLD, SESSION_TTL_MINUTES, ALLOWED_DOWNLOAD_EXTENSIONS
@@ -43,8 +50,10 @@
 - Garanta que `launcher_gui.py` inclui bootstrap dos caminhos (`src/`) e que as variaveis de ambiente estao definidas antes de executar o binario.
 
 ## Observacoes
-- Armazenamento padrao usa arquivos JSON + filelock em `processing/`.
-- Downloads exigem assinatura HMAC por padrao (flag configurable em feature flags).
+- Armazenamento padrao usa arquivos JSON + filelock em `processing/`; `persistence_backend=sqlite` ativa persistência em SQLite.
+- Downloads exigem assinatura HMAC por padrao (flag configurável em feature flags).
+- Auth: fora de `TEST_MODE`, endpoints com `require_active_session` exigem sessão OAuth válida; requests sem cookie retornam 401.
+- Chunking: watcher não fatia mais arquivos; chunking automático permanece no pipeline (`WhisperService`) conforme `OPENAI_CHUNK_TRIGGER_MB`.
 - Evite commitar `config/runtime_credentials.json` ou chaves reais. 
 
 ## Smoke tests (antes de build/installer)
@@ -58,3 +67,9 @@
 - Downloads: `downloads.signature_required` permanece ativo por padrao; mantenha `config/feature_flags.json` integro ou defina flag explicitamente. Tokens invalidos bloqueiam download.
 - Uploads: nomes de arquivos sao sanitizados (slug ASCII) e extensoes limitadas a audio permitido; respeita `MAX_AUDIO_SIZE_MB`.
 - Smoke pre-release recomendado: executar upload -> process -> download (token assinado) contra backend real antes de build/installer.
+
+## CI/CD
+- Workflow principal `.github/workflows/ci-cd.yml`: backend → frontend → e2e → load → build-windows.
+- Jobs backend e frontend usam cache `pip`/`npm` para acelerar reinstalacoes da mesma maquina.
+- O frontend agora executa `npm run typecheck:contracts` após Jest para manter contratos OpenAPI/TS sincronizados.
+- Artefatos e relatórios de cobertura sao publicados com `if: always()` para facilitar debug de falhas.

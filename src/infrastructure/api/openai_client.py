@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -16,10 +16,24 @@ class OpenAIWhisperHttpClient(AsrEngineClient):
         self.model = model
         self.timeout = timeout
 
-    def transcribe(self, *, file_path: Path, language: str | None, task: str) -> Dict[str, Any]:
+    def transcribe(
+        self,
+        *,
+        file_path: Path,
+        language: str | None,
+        task: str,
+        response_format: Optional[str] = None,
+        chunking_strategy: Optional[str] = None,
+    ) -> Dict[str, Any]:
         url = f"{self.base_url}/audio/transcriptions"
         headers = {"Authorization": f"Bearer {self.api_key}"}
-        data = {"model": self.model, "response_format": "verbose_json", "task": task}
+        data = {"model": self.model, "task": task}
+        if response_format:
+            data["response_format"] = response_format
+        else:
+            data["response_format"] = "verbose_json"
+        if chunking_strategy:
+            data["chunking_strategy"] = chunking_strategy
         if language:
             data["language"] = language
         with file_path.open("rb") as fp:

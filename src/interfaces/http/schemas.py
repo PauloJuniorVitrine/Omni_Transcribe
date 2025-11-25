@@ -41,6 +41,28 @@ class DashboardIncidentsResponse(BaseModel):
     items: List[IncidentPayload]
     generated_at: datetime
 
+class JobFeedItem(BaseModel):
+    id: str
+    source_name: str
+    profile_id: str
+    status: str
+    language: Optional[str] = None
+    accuracy_status: Optional[str] = None
+    accuracy_score: Optional[float] = None
+    accuracy_wer: Optional[float] = None
+    accuracy_requires_review: bool = False
+    updated_at: str
+
+
+class JobsFeedResponse(BaseModel):
+    jobs: List[JobFeedItem]
+    summary: SummaryCounters
+    accuracy: AccuracySummary
+    page: int
+    limit: int
+    has_more: bool
+    generated_at: datetime
+
 
 class LogEntryPayload(BaseModel):
     timestamp: str
@@ -63,6 +85,21 @@ class JobLogsResponse(BaseModel):
 class ProcessJobResponse(BaseModel):
     job_id: str
     status: str
+
+
+class UploadTokenResponse(BaseModel):
+    token: str
+    expires: str
+    profile: str
+    engine: str
+    expires_in_minutes: int
+
+
+class UploadJobResponse(BaseModel):
+    job_id: str
+    status: str
+    profile_id: str
+    auto_processed: bool
 
 
 class TemplateRawResponse(BaseModel):

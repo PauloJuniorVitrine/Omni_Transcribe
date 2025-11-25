@@ -1,0 +1,30 @@
+## Checklist de Ajustes Finos
+
+> **Abordagem obrigatoria:** todos os topicos abaixo devem ser analisados e executados usando o raciocinio estruturado descrito (CoCoT, ToT, ReAct e representacoes visuais) para garantir comprovacao tecnica, causa-efeito, contexto arquitetural, multiplos caminhos avaliados, simulacoes de impacto e diagramas de apoio.
+
+1. **Documentacao e visao integral** (feito)
+   - README e `DEV_GUIDE.md` agora destacam a criacao/ativacao do venv em PowerShell e mencionam os scripts oficiais `scripts/run_transcribeflow.*` e o watcher.
+   - Novo documento `docs/architecture_overview.md` apresenta diagrama Mermaid do fluxo watcher -> controllers -> pipeline -> artefatos e um mapa dos diretorios principais.
+
+2. **Observabilidade e robustez** (feito)
+   - `ProcessJobPipeline` agora mede e registra `pipeline.stage.duration` com `success`/`duration_ms`, dispara alertas `pipeline.failed` e metrifica retries via `PipelineStage`/`notify_alert` em `src/domain/usecases/pipeline.py`.
+   - `WhisperService` inclui `chunk_count`/`chunked` no metadata, e o pipeline registra `pipeline.asr.completed`, `pipeline.artifacts.generated`, `pipeline.retry.triggered` e `pipeline.completed` para dar visibilidade completa aos estágios; os logs estão descritos em `docs/architecture_overview.md`.
+
+3. **Interface e experiencia** (feito)
+   - Dashboard agora chama `GET /api/dashboard/jobs` para atualizar a tabela, o resumo e a paginação de forma reativa, mantendo badges de saúde (status/accuracy) visíveis e suportando filtros sem reload (ver `src/interfaces/web/static/js/jobs.js`).
+   - Painel de preview de templates consome `GET /api/templates/preview` e renderiza o corpo selecionado com contexto simulado, permitindo validar ajustes visuais antes de subir um job real.
+
+4. **Performance & testes** (feito)
+   - `metrics_logger` agora registra histogramas em `logs/metrics_histograms.json` e o pipeline emite eventos de latência e chunk count (`pipeline.stage.latency`, `pipeline.asr.chunk_count`) para acompanhar bucketizações e detectar regressões de throughput.
+   - Novos testes de performance `tests/performance/test_pipeline_multiupload_extended.py` exercitam uploads concorrentes e falhas de ASR simuladas, reforçando a cobertura para situações de carga e erros externos.
+
+5. **Feedback do usuario & automacao** (feito)
+   - `TranscriptionAccuracyGuard` dispara `notify_alert` no evento `accuracy.guard.alert` (payload com job_id, score, WER) sempre que `accuracy_requires_review` fica verdadeiro; esse alerta usa `ALERT_WEBHOOK_URL`/`METRICS_WEBHOOK_URL` para notificar equipes externas imediatamente.
+   - O novo `GET /api/uploads/token` + `POST /api/uploads` permite uploads autenticados por token com TTL curto e assinatura HMAC (profile+engine) para criar jobs e, opcionalmente, iniciar o pipeline diretamente via API, reduzindo a dependência da interface web.
+
+6. **Representacoes visuais complementares** (feito)
+   - Novo `docs/visualizations.md` concentra diagrama de entidades (Job/Artifact/Transcription), fluxograma pipeline (watcher → controllers → pipeline → artefatos) e mapa de diretórios/módulos para reforçar visão global antes de editar.
+
+7. **Mitigacoes & acompanhamento** (feito)
+   - `docs/mitigation_monitoring.md` registra responsáveis, checkpoints e as ações de monitoramento (charts, alert logs, feature flags) para cada bloco revisado; reveja sempre com CoCoT/ToT/ReAct.
+   - Para cada release, execute `scripts/plot_metrics_histograms.py ...` antes de subir PRs de pipeline e registre o resultado no `.github/pull_request_template.md`, garantindo que métricas/alertas sejam reavaliados e falsos positivos sejam mapeados via feature flags e limites ajustáveis.

@@ -17,6 +17,12 @@ class _SessionService:
         return "abc"
 
 
+@pytest.fixture(autouse=True)
+def disable_test_mode(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
+
+
 def test_require_active_session_missing_csrf_raises(monkeypatch):
     monkeypatch.setattr("interfaces.http.dependencies.get_session_service", lambda: _SessionService())
     settings = type("S", (), {"test_mode": False})()

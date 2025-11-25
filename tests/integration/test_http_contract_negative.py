@@ -113,6 +113,8 @@ def test_api_logs_require_session_even_with_valid_job(tmp_path, monkeypatch):
         base_processing_dir=tmp_path / "processing",
         base_backup_dir=tmp_path / "backup",
     )
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
 
     client = TestClient(app, raise_server_exceptions=False)
     response = client.get(f"/api/jobs/{job.id}/logs")

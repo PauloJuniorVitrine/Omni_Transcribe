@@ -1,37 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero">
-  <div class="hero-body">
-    <p class="eyebrow">Console operacional</p>
-    <h1>TranscribeFlow</h1>
-    <p class="lead">
-      Controle em tempo real dos jobs, revisoes e entregas. Ajuste perfis, acompanhe incidentes e otimize a acuracia sem sair desta tela.
-    </p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="/settings/api">Credenciais</a>
-      <a class="btn btn-secondary" href="/settings/templates">Templates</a>
-      <a class="btn btn-ghost" href="/ui/theme-preview">Tema</a>
+<section class="hero dashboard-hero">
+  <div class="hero-left">
+    <div class="hero-brand-tile">
+      {% if branding_logo_url %}
+      <div class="hero-logo">
+        <img src="{{ branding_logo_url }}" alt="Logomarca do workspace" />
+      </div>
+      {% else %}
+      <div class="hero-logo hero-logo--placeholder">OT</div>
+      {% endif %}
+      <div class="hero-brand-text">
+        <p class="overline">Console operacional</p>
+        <h1 class="hero-title">TranscribeFlow</h1>
+        <p class="hero-subtitle">Omni Transcriber</p>
+        <p class="hero-description">
+          Painel rapido para ingestao, revisao e entrega. Visao de saude do pipeline, artefatos e precisao em um so lugar.
+        </p>
+        <div class="hero-tabs">
+          <a class="hero-tab is-active" href="/settings/api">Credenciais</a>
+          <a class="hero-tab" href="/settings/templates">Templates</a>
+          <a class="hero-tab" href="/ui/theme-preview">Tema</a>
+        </div>
+        <div class="hero-chips">
+          <span class="chip chip-neutral">Aguardando: {{ summary.awaiting_review }}</span>
+          <span class="chip chip-success">Aprovados: {{ summary.approved }}</span>
+          <span class="chip chip-danger">Falhas/Rejeitados: {{ summary.failed }}</span>
+          <span class="chip chip-info">Acuracia avaliada: {{ accuracy_summary.evaluated or 0 }}</span>
+          {% if health_status.status %}
+          <span class="chip {% if health_status.status == 'ok' %}chip-success{% elif health_status.status == 'degraded' %}chip-warning{% else %}chip-neutral{% endif %}">
+            Saude: {{ health_status.status | title }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
     </div>
-  <div class="hero-meta">
-    <span class="pill">Aguardando: {{ summary.awaiting_review }}</span>
-    <span class="pill pill-muted">Aprovados: {{ summary.approved }}</span>
-    <span class="pill pill-warning">Falhas/Rejeitados: {{ summary.failed }}</span>
-    <span class="pill pill-info">Acuracia avaliada: {{ accuracy_summary.evaluated or 0 }}</span>
-    {% if health_status.status %}
-    <span class="pill {% if health_status.status == 'ok' %}pill-success{% elif health_status.status == 'degraded' %}pill-warning{% else %}pill-muted{% endif %}">
-      Saúde: {{ health_status.status | title }}
-    </span>
-    {% endif %}
   </div>
-</div>
-  <div class="hero-stats">
-    <div class="stat-block">
-      <small>Total</small>
+  <div class="hero-kpis">
+    <div class="kpi-card">
+      <p>Total de jobs</p>
       <strong>{{ summary.total }}</strong>
     </div>
-    <div class="stat-block">
-      <small>Media score</small>
+    <div class="kpi-card">
+      <p>Media de score</p>
       <strong>
         {% if accuracy_summary.average_score is not none %}
         {{ (accuracy_summary.average_score * 100) | round(2) }}%
@@ -40,8 +52,8 @@
         {% endif %}
       </strong>
     </div>
-    <div class="stat-block">
-      <small>Media WER</small>
+    <div class="kpi-card">
+      <p>Media WER</p>
       <strong>
         {% if accuracy_summary.average_wer is not none %}
         {{ (accuracy_summary.average_wer * 100) | round(2) }}%
@@ -51,7 +63,7 @@
       </strong>
     </div>
   </div>
-</div>
+</section>
 
 <section class="jobs-view" data-surface="jobs-feed">
   {% if flash_message %}
@@ -74,27 +86,27 @@
     {% endif %}
   >
     <div class="summary-grid" data-surface="summary-cards">
-      <div class="summary-card">
+      <div class="summary-card summary-card--total">
         <p>Total</p>
         <strong data-summary-field="total">{{ summary.total }}</strong>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card--awaiting">
         <p>Aguardando revisao</p>
         <strong data-summary-field="awaiting_review">{{ summary.awaiting_review }}</strong>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card--approved">
         <p>Aprovados</p>
         <strong data-summary-field="approved">{{ summary.approved }}</strong>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card--danger">
         <p>Falhas/Rejeitados</p>
         <strong data-summary-field="failed">{{ summary.failed }}</strong>
       </div>
       <div class="summary-card summary-card--accent">
-        <p>Jobs com precisao avaliada</p>
+        <p>Jobs com acuracia avaliada</p>
         <strong data-accuracy-field="evaluated">{{ accuracy_summary.evaluated or 0 }}</strong>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card--score">
         <p>Media de score</p>
         <strong data-accuracy-field="average_score">
           {% if accuracy_summary.average_score is not none %}
@@ -111,7 +123,7 @@
           {% endif %}
         </small>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card--warning">
         <p>Necessitam revisao</p>
         <strong data-accuracy-field="needs_review">{{ accuracy_summary.needs_review or 0 }}</strong>
       </div>
@@ -120,7 +132,7 @@
       <small data-summary-updated>Atualizado no carregamento inicial</small>
       {% if health_status.external %}
       <small>
-        ASR: {{ 'OK' if health_status.external.asr_ready else 'OFF' }} · Chat: {{ 'OK' if health_status.external.chat_ready else 'OFF' }}{% if health_status.external.openai_probe is defined %} · API: {{ 'OK' if health_status.external.openai_probe else 'OFF' }}{% endif %}
+        ASR: {{ 'OK' if health_status.external.asr_ready else 'OFF' }} | Chat: {{ 'OK' if health_status.external.chat_ready else 'OFF' }}{% if health_status.external.openai_probe is defined %} | API: {{ 'OK' if health_status.external.openai_probe else 'OFF' }}{% endif %}
       </small>
       {% endif %}
     </div>
@@ -132,127 +144,173 @@
     </div>
   </div>
 
-  <section class="card upload-panel">
-    <div class="section-header">
-      <div>
-        <h2>Enviar audio</h2>
-        <p>Envie um arquivo para criar um job. Opcionalmente, ja dispare o processamento completo.</p>
+  <section class="card upload-panel upload-grid">
+    <div class="upload-column">
+      <div class="section-header">
+        <div>
+          <h2>Enviar audio</h2>
+          <p>Envie um arquivo para criar um job. Opcionalmente, ja dispare o processamento completo.</p>
+        </div>
       </div>
-      <small class="filters-meta" data-state="info">Tamanho maximo: {{ max_audio_size_mb }} MB</small>
+      <form
+        action="/jobs/upload"
+        method="post"
+        enctype="multipart/form-data"
+        data-loading-surface="jobs-feed"
+        data-updated-label="upload"
+        aria-describedby="upload-help"
+        class="upload-form"
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+        <div class="upload-form-grid upload-form-grid--file">
+          <label class="field">
+            <span class="field-label">Arquivo de audio</span>
+            <div class="file-field" data-file-input>
+              <input
+                type="file"
+                name="file"
+                accept=".wav,.mp3,.m4a,.aac,.flac,.ogg"
+                aria-describedby="upload-help"
+                required
+              />
+              <span class="file-button">Escolher arquivo</span>
+              <span class="file-name" data-file-name>Nenhum arquivo selecionado</span>
+            </div>
+            <span class="field-help">WAV, MP3, M4A, AAC, FLAC ou OGG | Limite: {{ max_audio_size_mb }} MB</span>
+          </label>
+        </div>
+        <div class="upload-form-grid upload-form-grid--fields">
+          <label class="field">
+            <span class="field-label">Perfil</span>
+            <select name="profile">
+              {% for value in profile_options %}
+              <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Engine</span>
+            <select name="engine">
+              {% for value in engine_options %}
+              <option value="{{ value }}">{{ value }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="checkbox-control">
+            <input type="checkbox" name="auto_process" value="true" />
+            <span>Processar automaticamente apos criar</span>
+          </label>
+        </div>
+        <p class="filters-meta" id="upload-help">
+          Ative 'processar' para disparar o pipeline apos o upload. Limite atual: {{ max_audio_size_mb }} MB.
+        </p>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-gradient">Enviar e criar job</button>
+        </div>
+      </form>
     </div>
-    <form
-      action="/jobs/upload"
-      method="post"
-      enctype="multipart/form-data"
-      data-loading-surface="jobs-feed"
-      data-updated-label="upload"
-      aria-describedby="upload-help"
-    >
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-      <div class="form-grid">
-        <label>
-          Arquivo de audio
-          <input
-            type="file"
-            name="file"
-            accept=".wav,.mp3,.m4a,.aac,.flac,.ogg"
-            aria-describedby="upload-help"
-            required
-          />
-        </label>
-        <label>
-          Perfil
-          <select name="profile">
-            {% for value in profile_options %}
-            <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>{{ value }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label>
-          Engine
-          <select name="engine">
-            {% for value in engine_options %}
-            <option value="{{ value }}">{{ value }}</option>
-            {% endfor %}
-          </select>
-        </label>
-        <label class="checkbox-row">
-          <input type="checkbox" name="auto_process" value="true" />
-          <span>Processar automaticamente apos criar</span>
-        </label>
+    <div class="upload-aside">
+      <div class="upload-aside__card card-dark">
+        <h3>Dicas rapidas</h3>
+        <ul>
+          <li>Tamanho maximo: {{ max_audio_size_mb }} MB.</li>
+          <li>Perfis controlam idioma, instrucoes e template de entrega.</li>
+          <li>Engines disponiveis: {{ engine_options | join(", ") }}.</li>
+          <li>Processamento automatico inicia ASR + pos-edicao imediatamente.</li>
+        </ul>
       </div>
-      <p class="filters-meta" id="upload-help">
-        Aceita WAV/MP3/M4A/AAC/FLAC/OGG. Limite atual: {{ max_audio_size_mb }} MB. Ative "processar" para disparar o pipeline apos o upload.
-      </p>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Enviar e criar job</button>
-      </div>
-    </form>
+    </div>
   </section>
 
-  <div class="skeleton-grid" data-skeleton="jobs-feed" hidden aria-hidden="true">
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
-    <div class="skeleton-card"></div>
+  <div class="filters-card">
+    <form
+      method="get"
+      class="filters"
+      data-jobs-form="true"
+      data-loading-skeleton="jobs-feed"
+      data-loading-surface="jobs-feed"
+      data-updated-label="filters"
+    >
+      <input type="hidden" name="page" value="1" />
+      <input type="hidden" name="limit" value="{{ limit }}" />
+      <label class="field">
+        <span class="field-label">Status</span>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for value in status_options %}
+          <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>
+            {{ value }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Perfil</span>
+        <select name="profile">
+          <option value="">Todos</option>
+          {% for value in profile_options %}
+          <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>
+            {{ value }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field-label">Acuracia</span>
+        <select name="accuracy">
+          <option value="">Todos</option>
+          {% for value in accuracy_options %}
+          <option value="{{ value }}" {% if value == selected_accuracy %}selected{% endif %}>
+            {% if value == "needs_review" %}
+            Requer revisao
+            {% else %}
+            Dentro da meta
+            {% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">Aplicar filtros</button>
+      <a href="/" class="link-reset" data-loading-skeleton="jobs-feed">Limpar</a>
+    </form>
+    <small class="filters-meta" data-filters-updated>Atualizado as {{ page_generated_label }}</small>
   </div>
 
-  <form
-    method="get"
-    class="filters"
-    data-loading-skeleton="jobs-feed"
-    data-loading-surface="jobs-feed"
-    data-updated-label="filters"
-  >
-    <label>
-      Status
-      <select name="status">
-        <option value="">Todos</option>
-        {% for value in status_options %}
-        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>
-          {{ value }}
-        </option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>
-      Perfil
-      <select name="profile">
-        <option value="">Todos</option>
-        {% for value in profile_options %}
-        <option value="{{ value }}" {% if value == selected_profile %}selected{% endif %}>
-          {{ value }}
-        </option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>
-      Precisao
-      <select name="accuracy">
-        <option value="">Todos</option>
-        {% for value in accuracy_options %}
-        <option value="{{ value }}" {% if value == selected_accuracy %}selected{% endif %}>
-          {% if value == "needs_review" %}
-          Requer revisao
-          {% else %}
-          Dentro da meta
-          {% endif %}
-        </option>
-        {% endfor %}
-      </select>
-    </label>
-    <button type="submit" class="btn btn-primary">Aplicar filtros</button>
-    <a href="/" class="link-reset" data-loading-skeleton="jobs-feed">Limpar</a>
-  </form>
-  <small class="filters-meta" data-filters-updated>Atualizado as {{ page_generated_label }}</small>
+  <section class="card template-preview" data-template-preview>
+    <div class="section-header">
+      <div>
+        <h2>Preview de templates</h2>
+        <p>Visualize o corpo renderizado de um template com dados fictícios.</p>
+      </div>
+      <small data-preview-updated>Atualizado no carregamento inicial</small>
+    </div>
+    <div class="template-preview__controls">
+      <label class="field">
+        <span class="field-label">Template</span>
+        <select name="template" data-template-selector>
+          {% for option in template_options %}
+          <option
+            value="{{ option.id }}"
+            data-description="{{ option.description }}"
+            {% if option.id == template_preview_default %}selected{% endif %}
+          >
+            {{ option.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+      <p class="field-help" data-template-description>Selecione um template para ver o render.</p>
+    </div>
+    <pre class="template-preview__body" data-template-preview-content>{{ template_preview }}</pre>
+  </section>
 
   {% if feature_flags["dashboard.live_incidents"] %}
   <section
-    class="incident-panel"
+    class="incident-panel card"
     data-live-incidents-endpoint="/api/dashboard/incidents"
     data-refresh-interval="45"
     data-empty-label="Nenhum incidente critico."
     data-loading-surface="incident-panel"
-    data-surface="incident-panel"
     data-surface="incident-panel"
   >
     <div class="section-header">
@@ -283,12 +341,18 @@
         </div>
       </li>
       {% else %}
-      <li class="incident-empty">Nenhum incidente critico.</li>
+      <li class="incident-empty">
+        <div class="empty-icon">OK</div>
+        <div>
+          <strong>Nenhum incidente critico.</strong>
+          <p>Monitoramento em tempo real ativo.</p>
+        </div>
+      </li>
       {% endfor %}
     </ul>
   </section>
   {% else %}
-  <section class="incident-panel disabled">
+  <section class="incident-panel disabled card">
     <div class="section-header">
       <div>
         <h2>Incidentes recentes</h2>
@@ -299,52 +363,92 @@
   </section>
   {% endif %}
 
-  <h2>Jobs recentes</h2>
-  <table aria-label="Tabela de jobs recentes">
-    <caption class="sr-only">Lista de jobs processados com status e precisao</caption>
-    <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Arquivo</th>
-        <th scope="col">Perfil</th>
-        <th scope="col">Status</th>
-        <th scope="col">Idioma</th>
-        <th scope="col">Precisao</th>
-        <th scope="col">Acoes</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for job in jobs %}
-      <tr>
-        <td>{{ job.id }}</td>
-        <td>{{ job.source_path.name }}</td>
-        <td>{{ job.profile_id }}</td>
-        <td>{{ job.status.value }}</td>
-        <td>{{ job.language or "-" }}</td>
-        <td>
-          {% set accuracy = job.metadata.get("accuracy_status") if job.metadata else "" %}
-          {% if accuracy %}
-          {% if accuracy == "needs_review" %}
-          <span class="badge badge-warning" aria-label="Precisao: requer revisao">Rever</span>
-          {% elif accuracy == "passing" %}
-          <span class="badge badge-success" aria-label="Precisao: dentro da meta">OK</span>
+  <section class="card jobs-table">
+    <div class="section-header">
+      <div>
+        <h2>Jobs recentes</h2>
+        <p>Visualize os ultimos envios e seus estados.</p>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table aria-label="Tabela de jobs recentes">
+        <caption class="sr-only">Lista de jobs processados com status e precisao</caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Arquivo</th>
+            <th scope="col">Perfil</th>
+            <th scope="col">Status</th>
+            <th scope="col">Idioma</th>
+            <th scope="col">Acuracia</th>
+            <th scope="col">Acoes</th>
+          </tr>
+        </thead>
+        <tbody data-jobs-body>
+          {% for job in jobs %}
+          <tr>
+            <td>{{ job.id }}</td>
+            <td>{{ job.source_path.name }}</td>
+            <td>{{ job.profile_id }}</td>
+            <td>{{ job.status.value }}</td>
+            <td>{{ job.language or "-" }}</td>
+            <td>
+              {% set accuracy = job.metadata.get("accuracy_status") if job.metadata else "" %}
+              {% if accuracy %}
+              {% if accuracy == "needs_review" %}
+              <span class="badge badge-warning" aria-label="Precisao: requer revisao">Rever</span>
+              {% elif accuracy == "passing" %}
+              <span class="badge badge-success" aria-label="Precisao: dentro da meta">OK</span>
+              {% else %}
+              <span class="badge">{{ accuracy }}</span>
+              {% endif %}
+              {% else %}
+              -
+              {% endif %}
+            </td>
+            <td>
+              <a href="/jobs/{{ job.id }}">Ver detalhes</a>
+            </td>
+          </tr>
           {% else %}
-          <span class="badge">{{ accuracy }}</span>
-          {% endif %}
-          {% else %}
-          -
-          {% endif %}
-        </td>
-        <td>
-          <a href="/jobs/{{ job.id }}">Ver detalhes</a>
-        </td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="6">Nenhum job encontrado.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          <tr class="table-empty">
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon">OT</div>
+                <div>
+                  <strong>Nenhum job encontrado ainda.</strong>
+                  <p>Envie um audio na secao "Enviar audio" para comecar.</p>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" data-jobs-pagination>
+      <span data-current-page>Pagina {{ page }}</span>
+      <div class="pagination-actions">
+        <a
+          class="btn btn-secondary{% if not prev_page %} btn--disabled{% endif %}"
+          data-page-control="prev"
+          data-page-target="{{ prev_page or '' }}"
+          aria-disabled="{{ 'false' if prev_page else 'true' }}"
+          href="{% if prev_page %}/?page={{ prev_page }}&limit={{ limit }}&status={{ selected_status }}&profile={{ selected_profile }}&accuracy={{ selected_accuracy }}{% else %}#{% endif %}"
+        >
+          Anterior
+        </a>
+        <a
+          class="btn btn-primary{% if not has_more %} btn--disabled{% endif %}"
+          data-page-control="next"
+          data-page-target="{{ next_page or '' }}"
+          aria-disabled="{{ 'false' if has_more else 'true' }}"
+          href="{% if has_more %}/?page={{ next_page }}&limit={{ limit }}&status={{ selected_status }}&profile={{ selected_profile }}&accuracy={{ selected_accuracy }}{% else %}#{% endif %}"
+        >
+          Proximo
+        </a>
+      </div>
+    </div>
+  </section>
 </section>
 {% endblock %}

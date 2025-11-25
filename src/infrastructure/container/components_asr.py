@@ -16,6 +16,8 @@ from domain.usecases.run_asr import RunAsrPipeline
 from infrastructure.api.faster_whisper_client import FasterWhisperClient
 from infrastructure.api.openai_client import OpenAIChatHttpClient, OpenAIWhisperHttpClient
 
+ALLOWED_LOCAL_WHISPER_MODELS = {"tiny", "base", "small", "medium", "large-v2", "large-v3", "turbo"}
+
 
 def build_core_usecases(
     settings: Settings,
@@ -33,6 +35,8 @@ def build_core_usecases(
         engine_clients,
         chunker=chunker,
         chunk_trigger_mb=settings.openai_chunk_trigger_mb,
+        response_format=getattr(settings, "openai_whisper_response_format", "verbose_json"),
+        chunking_strategy=getattr(settings, "openai_whisper_chunking_strategy", "") or None,
     )
     chat_client = _build_chat_client(settings)
     post_edit_service = ChatGptPostEditingService(chat_client)
@@ -83,7 +87,12 @@ def _build_asr_clients(settings: Settings) -> Dict[str, AsrEngineClient]:
         )
 
     if settings.asr_engine == "local":
-        clients["local"] = FasterWhisperClient(settings.local_whisper_model_size)
+        model_size = settings.local_whisper_model_size
+        if model_size not in ALLOWED_LOCAL_WHISPER_MODELS:
+            raise RuntimeError(
+                f"LOCAL_WHISPER_MODEL_SIZE invalido: {model_size}. Use um de {sorted(ALLOWED_LOCAL_WHISPER_MODELS)}."
+            )
+        clients["local"] = FasterWhisperClient(model_size)
     elif settings.asr_engine == "openai" and "openai" not in clients:
         raise RuntimeError("OPENAI_API_KEY precisa estar configurada para usar o engine openai.")
 

@@ -10,7 +10,6 @@ from watchdog.observers import Observer
 from config import get_settings
 from domain.entities.value_objects import EngineType
 from domain.usecases.create_job import CreateJobInput
-from application.services.audio_chunker import AudioChunker
 from infrastructure.container import ServiceContainer, get_container
 
 SUPPORTED_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".flac", ".ogg"}
@@ -44,52 +43,6 @@ class InboxEventHandler(FileSystemEventHandler):
             subfolder = relative.parent.name
         except ValueError:
             subfolder = "geral"
-
-        chunk_threshold_mb = getattr(
-            self.container.settings, "openai_chunk_trigger_mb", None
-        )
-        chunk_duration_sec = getattr(
-            self.container.settings, "openai_chunk_duration_sec", 900
-        )
-        if chunk_threshold_mb:
-            chunk_bytes = chunk_threshold_mb * 1024 * 1024
-            size = path.stat().st_size
-            if size > chunk_bytes:
-                try:
-                    chunker = AudioChunker(chunk_duration_sec=chunk_duration_sec)
-                    chunks = chunker.split(path)
-                except Exception as exc:
-                    self.logger.warning(
-                        "Chunking indisponivel; arquivo sera processado integralmente",
-                        extra={"path": str(path), "error": str(exc)},
-                    )
-                    chunks = [None]
-                if chunks and chunks[0] is not None:
-                    total = len(chunks)
-                    for idx, chunk in enumerate(chunks):
-                        input_data = CreateJobInput(
-                            source_path=chunk.path,
-                            profile_id=subfolder if subfolder else "geral",
-                            engine=EngineType(self.container.settings.asr_engine),
-                            metadata={
-                                "detected_profile": subfolder,
-                                "chunk_index": idx,
-                                "total_chunks": total,
-                                "start_sec": chunk.start_sec,
-                                "duration_sec": chunk.duration_sec,
-                            },
-                        )
-                        job = self.container.create_job_use_case.execute(input_data)
-                        self.logger.info(
-                            "Job criado a partir de chunk",
-                            extra={"job_id": job.id, "path": str(chunk.path), "chunk": idx},
-                        )
-                        if self.container.pipeline_use_case:
-                            thread = threading.Thread(
-                                target=self._run_pipeline, args=(job.id,), daemon=True
-                            )
-                            thread.start()
-                    return
 
         input_data = CreateJobInput(
             source_path=path,

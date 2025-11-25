@@ -57,15 +57,16 @@ async def require_active_session(
     if not hasattr(session_service, "get_session"):
         session_service = get_session_service()
     test_mode = os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1" or getattr(settings, "test_mode", False)
-    if test_mode and request.url.path.startswith("/jobs/upload"):
-        return {"user": "test", "session_id": "test", "csrf_token": "test"}
+    if test_mode and getattr(settings, "app_env", "development") != "production":
+        # Bypass auth entirely in test/dev mode so the bundled app abre sem OAuth.
+        return {"user": "test", "session_id": "test", "csrf_token": "test", "metadata": {"display_name": "Local"}}
 
     session_id = request.cookies.get("session_id")
     if not session_id:
-        raise HTTPException(status_code=401, detail="Nao autenticado.")
+        raise HTTPException(status_code=401, detail="Sessao inativa.")
     session = session_service.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=401, detail="Nao autenticado.")
+        raise HTTPException(status_code=401, detail="Sessao expirada ou invalida.")
     if session_id:
         session["session_id"] = session_id
         csrf_token = session_service.ensure_csrf_token(session_id)

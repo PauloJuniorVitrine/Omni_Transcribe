@@ -28,7 +28,7 @@ class ChatGptPostEditingService(PostEditingService):
             return self.client.complete(system_prompt=system_prompt, user_prompt=user_prompt, response_format="json_object")
 
         raw_response = self.retry_executor.run(_call)
-        payload = json.loads(raw_response)
+        payload = self._safe_parse_payload(raw_response, transcription)
 
         text = payload.get("text", transcription.text)
         segments_payload = payload.get("segments") or self._segments_from_transcription(transcription)
@@ -95,3 +95,25 @@ class ChatGptPostEditingService(PostEditingService):
             text=str(segment.get("text", "")),
             speaker=segment.get("speaker"),
         )
+
+    @staticmethod
+    def _safe_parse_payload(raw_response: str, transcription: TranscriptionResult) -> Dict[str, object]:
+        """
+        Robustez: garante payload minimamente valido; em caso de erro, retorna fallback baseado na transcricao.
+        """
+        try:
+            payload = json.loads(raw_response or "") or {}
+        except Exception:
+            return {"text": transcription.text, "segments": ChatGptPostEditingService._segments_from_transcription(transcription), "flags": []}
+
+        # sane defaults
+        if not isinstance(payload, dict):
+            return {"text": transcription.text, "segments": ChatGptPostEditingService._segments_from_transcription(transcription), "flags": []}
+
+        text = payload.get("text") if isinstance(payload.get("text"), str) else transcription.text
+        segments = payload.get("segments")
+        if not isinstance(segments, list):
+            segments = ChatGptPostEditingService._segments_from_transcription(transcription)
+        flags = payload.get("flags") if isinstance(payload.get("flags"), list) else []
+
+        return {"text": text, "segments": segments, "flags": flags, "language": payload.get("language")}

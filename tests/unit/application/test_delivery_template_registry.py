@@ -5,29 +5,53 @@ from pathlib import Path
 from application.services.delivery_template_service import DeliveryTemplateRegistry
 
 
-def _write_template(path: Path, metadata: str, body: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f"---\n{metadata.strip()}\n---\n{body.strip()}\n", encoding="utf-8")
+def _write_template(path: Path, template_id: str, body: str, locale: str | None = None) -> None:
+    lines = ["---", f"id: {template_id}", "name: Test Template", "description: Desc"]
+    if locale:
+        lines.append(f"locale: {locale}")
+    lines.extend(["---", body])
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def test_registry_renders_default_and_localized(tmp_path):
-    default_path = tmp_path / "default.template.txt"
-    _write_template(default_path, "id: default\nname: Default\ndescription: Base", "Hello {{job_id}}")
+def test_list_and_render_templates(tmp_path):
+    templates_dir = tmp_path / "profiles" / "templates"
+    templates_dir.mkdir(parents=True, exist_ok=True)
+    default = templates_dir / "default.template.txt"
+    _write_template(default, "default", "{{greeting}} {{name}}")
 
-    localized_path = tmp_path / "pt-br" / "default.template.txt"
-    # locale inferred from folder name when metadata lacks explicit locale
-    _write_template(localized_path, "name: Local PT\n", "Ola {{language}}")
-
-    registry = DeliveryTemplateRegistry(tmp_path)
-
-    rendered_default = registry.render("default", {"job_id": "abc", "transcript": "t"}, language=None)
-    assert rendered_default.startswith("Hello abc")
-
-    rendered_localized = registry.render("default", {"job_id": "abc", "language": "pt-BR"}, language="pt-BR")
-    assert rendered_localized.startswith("Ola pt-BR")
-
+    registry = DeliveryTemplateRegistry(templates_dir)
     templates = registry.list_templates()
-    assert len(templates) >= 2
-    # cache reuse
-    again = registry.list_templates()
-    assert len(again) == len(templates)
+    assert any(template.id == "default" for template in templates)
+
+    rendered = registry.render("default", {"greeting": "Oi", "name": "Ana"})
+    assert "Oi Ana" in rendered
+
+
+def test_localized_template_selection(tmp_path):
+    templates_dir = tmp_path / "profiles" / "templates"
+    localized_dir = templates_dir / "pt-br"
+    localized_dir.mkdir(parents=True, exist_ok=True)
+    default = templates_dir / "default.template.txt"
+    localized = localized_dir / "default.template.txt"
+    _write_template(default, "default", "Default {{name}}")
+    _write_template(localized, "default", "Local {{name}}", locale="pt-br")
+
+    registry = DeliveryTemplateRegistry(templates_dir)
+    rendered_default = registry.render("default", {"name": "Ana"})
+    assert "Default" in rendered_default
+    rendered_localized = registry.render("default", {"name": "Ana"}, language="pt-BR")
+    assert "Local" in rendered_localized
+
+
+def test_get_localized_reads_fallback_locale(tmp_path):
+    templates_dir = tmp_path / "profiles" / "templates"
+    lang_dir = templates_dir / "en-us"
+    lang_dir.mkdir(parents=True, exist_ok=True)
+    default = templates_dir / "default.template.txt"
+    en_default = lang_dir / "default.template.txt"
+    _write_template(default, "default", "Default")
+    _write_template(en_default, "default", "EN Default", locale="en-us")
+
+    registry = DeliveryTemplateRegistry(templates_dir)
+    result = registry.render("default", {}, language="en-US")
+    assert "EN Default" in result

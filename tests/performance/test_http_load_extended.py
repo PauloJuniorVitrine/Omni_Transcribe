@@ -27,8 +27,15 @@ class _StubJobController:
     def process_job(self, job_id: str) -> None:
         return None
 
-    def list_jobs(self, limit: int = 20):
-        return self.created_jobs[-limit:]
+    def list_jobs(self, limit: int = 20, page: int = 1):
+        page = max(1, page)
+        limit = max(1, limit)
+        total = len(self.created_jobs)
+        end = total - (page - 1) * limit
+        start = max(0, end - limit)
+        page_items = self.created_jobs[start:end]
+        has_more = start > 0
+        return page_items, has_more
 
 
 def _make_settings(tmp_path: Path):

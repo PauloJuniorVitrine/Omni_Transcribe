@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from interfaces.http.app import app
@@ -15,6 +16,14 @@ from config import get_settings
 
 def _session_service(tmp_path: Path) -> SessionService:
     return SessionService(storage_path=tmp_path / "sessions" / "sessions.json", ttl_minutes=1)
+
+
+@pytest.fixture(autouse=True)
+def enforce_csrf(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
+    secret_key = Path("config/.credentials_secret.key").read_text().strip()
+    monkeypatch.setenv("CREDENTIALS_SECRET_KEY", secret_key)
 
 
 def _bootstrap_container(tmp_path: Path) -> Job:

@@ -40,8 +40,8 @@ def test_health_check_degraded(tmp_path, monkeypatch, dummy_settings):
 
 def test_dashboard_summary_uses_controller(monkeypatch):
     class _Controller:
-        def list_jobs(self, limit):
-            return []
+        def list_jobs(self, limit, page=1):
+            return [], False
 
     http_app.app.dependency_overrides[http_app.get_job_controller_dep] = lambda: _Controller()
     http_app.app.dependency_overrides[http_app.require_active_session] = lambda: {}

@@ -1,21 +1,22 @@
 from __future__ import annotations
 
 import csv
-import json
 import hashlib
 import hmac
 import io
+import json
 import logging
 import re
 import unicodedata
 import urllib.parse
 import os
+import sys
 import uuid
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import deque
 import time
-from typing import Any, Deque, Dict, List, Optional, TypedDict
+from typing import Any, Deque, Dict, List, Optional, TypedDict, Tuple
 import requests
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, File
@@ -40,24 +41,52 @@ from .dependencies import require_active_session
 from .schemas import (
     DashboardSummaryResponse,
     DashboardIncidentsResponse,
+    JobsFeedResponse,
     JobLogsResponse,
     ProcessJobResponse,
     TemplateRawResponse,
     TemplatePreviewResponse,
     UpdateTemplateResponse,
     UpdateLocaleResponse,
+    UploadJobResponse,
+    UploadTokenResponse,
 )
 
 app = FastAPI(title="TranscribeFlow")
 logger = logging.getLogger("transcribeflow.http")
-templates = Jinja2Templates(directory="src/interfaces/web/templates")
-app.mount("/static", StaticFiles(directory="src/interfaces/web/static"), name="static")
+def _find_assets_root() -> Path:
+    """Resolve assets path both in source tree and in PyInstaller bundle."""
+    candidates = []
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.append(Path(meipass) / "interfaces" / "web")
+        candidates.append(Path(meipass) / "src" / "interfaces" / "web")
+    here = Path(__file__).resolve()
+    try:
+        # src/interfaces/http -> parents[2] == src
+        candidates.append(here.parents[2] / "interfaces" / "web")
+        candidates.append(here.parents[3] / "src" / "interfaces" / "web")
+    except IndexError:
+        pass
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return Path("src/interfaces/web")
+
+
+_ASSETS_ROOT = _find_assets_root()
+templates = Jinja2Templates(directory=str(_ASSETS_ROOT / "templates"))
+app.mount("/static", StaticFiles(directory=str(_ASSETS_ROOT / "static")), name="static")
 app.include_router(auth_routes.router)
 app.include_router(webhook_routes.router)
 
 _app_settings = get_settings()
 _runtime_store = get_runtime_store()
 _feature_flags = get_feature_flags()
+if _app_settings.app_env == "production":
+    weak_secrets = {None, "", "changeme"}
+    if (_app_settings.webhook_secret in weak_secrets) and (getattr(_app_settings, "download_token_secret", "") in weak_secrets):
+        raise RuntimeError("WEBHOOK_SECRET ou DOWNLOAD_TOKEN_SECRET precisam ser definidos em producao.")
 _ROOT_DIR = Path(__file__).resolve().parents[3]
 _profiles_dir = Path(_app_settings.profiles_dir)
 if not _profiles_dir.is_absolute():
@@ -68,6 +97,8 @@ _template_audit_path = _templates_dir / "templates_audit.log"
 _template_registry = DeliveryTemplateRegistry(_templates_dir)
 _TEMPLATE_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _LOCALE_PATTERN = re.compile(r"^[a-z]{2}(?:[-_][a-z0-9]+)?$", re.IGNORECASE)
+_BRANDING_DIR = Path(_app_settings.base_processing_dir) / "branding"
+_ALLOWED_LOGO_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".svg"}
 
 _DOWNLOAD_RATE_WINDOW_SEC = 60
 _DOWNLOAD_RATE_LIMIT = 30
@@ -75,6 +106,7 @@ _download_tracker: Dict[str, Deque[float]] = {}
 _API_RATE_WINDOW_SEC = 60
 _API_RATE_LIMIT = 60
 _api_rate_tracker: Dict[str, Deque[float]] = {}
+UPLOAD_TOKEN_TTL_MINUTES = 10
 
 # Fail-fast: em produção não aceitamos CORS wildcard
 if _app_settings.app_env == "production" and "*" in (_app_settings.cors_allowed_origins or []):
@@ -113,6 +145,16 @@ def _get_template_registry() -> DeliveryTemplateRegistry:
     return _template_registry
 def _get_trace_id(request: Request) -> str:
     return getattr(request.state, "trace_id", "")
+
+def _branding_logo_url() -> Optional[str]:
+    if not _BRANDING_DIR.exists():
+        return None
+    for ext in (".png", ".jpg", ".jpeg", ".webp", ".svg"):
+        candidate = _BRANDING_DIR / f"logo{ext}"
+        if candidate.exists():
+            ts = int(candidate.stat().st_mtime)
+            return f"/branding/logo?ts={ts}"
+    return None
 
 # Artifact download whitelist & signature
 ALLOWED_DOWNLOAD_EXTENSIONS = {"txt", "srt", "vtt", "json", "zip"}
@@ -159,12 +201,42 @@ def _validate_upload_mime(content_type: Optional[str]) -> None:
         raise HTTPException(status_code=400, detail="Tipo de arquivo nao permitido.")
 
 
+async def _persist_upload_file(file: UploadFile, profile: str, max_bytes: int) -> tuple[Path, int]:
+    sanitized_name = _sanitize_upload_filename(file.filename or "")
+    _validate_upload_mime(file.content_type)
+    suffix = Path(sanitized_name).suffix.lower()
+    target_dir = Path(get_settings().base_input_dir) / (profile or "geral")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / sanitized_name
+    if target.exists():
+        target = target_dir / f"{Path(sanitized_name).stem}_{int(time.time())}{suffix}"
+    total_read = 0
+    chunk_size = max(1024 * 1024, min(4 * 1024 * 1024, max_bytes // 4 or max_bytes))
+    try:
+        with target.open("wb") as dest:
+            while True:
+                chunk = await file.read(chunk_size)
+                if not chunk:
+                    break
+                total_read += len(chunk)
+                if total_read > max_bytes:
+                    dest.close()
+                    target.unlink(missing_ok=True)
+                    raise HTTPException(status_code=400, detail="Arquivo excede limite configurado.")
+                dest.write(chunk)
+    finally:
+        await file.close()
+    return target, total_read
+
+
 def _sign_download(path: str, ttl_minutes: int = ARTIFACT_TOKEN_TTL_MINUTES) -> tuple[str, str]:
     """
     Constrói token HMAC + expiração para links de download de artefatos.
     Usa o mesmo segredo aplicado na validação para evitar divergências.
     """
-    secret = get_settings().webhook_secret.encode("utf-8")
+    settings = get_settings()
+    secret_value = getattr(settings, "download_token_secret", "") or settings.webhook_secret
+    secret = secret_value.encode("utf-8")
     expires_dt = datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)
     expires = expires_dt.isoformat()
     signature_payload = f"{path}:{expires}".encode("utf-8")
@@ -255,17 +327,31 @@ async def list_jobs(
     request: Request,
     job_controller: JobController = Depends(get_job_controller_dep),
     limit: int = 20,
+    page: int = 1,
     status: Optional[str] = None,
     profile: Optional[str] = None,
     accuracy: Optional[str] = None,
     session: dict | None = Depends(require_active_session),
 ) -> HTMLResponse:
-    jobs = job_controller.list_jobs(limit)
+    limit = max(1, min(limit, 200))
+    page = max(page, 1)
+    jobs, has_more = job_controller.list_jobs(limit, page)
     page_generated_at = datetime.now(timezone.utc)
     page_generated_label = page_generated_at.strftime("%d/%m/%Y %H:%M:%S")
     filtered_jobs = _apply_filters(jobs, status=status, profile=profile, accuracy=accuracy)
     summary = _compute_summary(jobs)
     accuracy_summary = _compute_accuracy_summary(jobs)
+    template_registry = _get_template_registry()
+    template_options = [
+        {
+            "id": template.id,
+            "name": template.name,
+            "description": template.description or "Sem descricao.",
+        }
+        for template in template_registry.list_templates()
+    ]
+    template_preview = template_registry.render(None, _build_preview_context())
+    template_default_id = template_registry.default_template_id
     profile_options = sorted({job.profile_id for job in jobs})
     flash = _get_flash_message(request.query_params.get("flash"))
     incidents = _get_recent_incidents(limit=5)
@@ -277,6 +363,11 @@ async def list_jobs(
         "selected_status": status or "",
         "selected_profile": profile or "",
         "selected_accuracy": accuracy or "",
+        "page": page,
+        "limit": limit,
+        "has_more": has_more,
+        "next_page": page + 1 if has_more else None,
+        "prev_page": page - 1 if page > 1 else None,
         "profile_options": profile_options,
         "engine_options": [engine.value for engine in EngineType],
         "status_options": [job_status.value for job_status in JobStatus],
@@ -291,6 +382,10 @@ async def list_jobs(
         "accuracy_summary": accuracy_summary,
         "max_audio_size_mb": getattr(_app_settings, "max_audio_size_mb", 0),
         "health_status": _health_snapshot(),
+        "branding_logo_url": _branding_logo_url(),
+        "template_preview": template_preview,
+        "template_preview_default": template_default_id,
+        "template_options": template_options,
     }
     return templates.TemplateResponse(request, "jobs.html", context)
 
@@ -348,7 +443,8 @@ async def api_dashboard_summary(
     _: dict | None = Depends(require_active_session),
 ) -> JSONResponse:
     _enforce_api_rate("summary")
-    jobs = job_controller.list_jobs(limit)
+    limit = max(1, min(limit, 200))
+    jobs, _ = job_controller.list_jobs(limit, page=1)
     summary = _compute_summary(jobs)
     accuracy_summary = _compute_accuracy_summary(jobs)
     payload = {
@@ -375,6 +471,38 @@ async def api_dashboard_incidents(
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
     record_metric("dashboard.incidents.requested", {"count": len(incidents), "limit": limit})
+    return JSONResponse(payload)
+
+
+@app.get("/api/dashboard/jobs", response_class=JSONResponse, response_model=JobsFeedResponse)
+async def api_dashboard_jobs(
+    status: Optional[str] = None,
+    profile: Optional[str] = None,
+    accuracy: Optional[str] = None,
+    page: int = 1,
+    limit: int = 20,
+    _: dict | None = Depends(require_active_session),
+) -> JSONResponse:
+    _enforce_api_rate("jobs")
+    limit = max(1, min(limit, 200))
+    page = max(page, 1)
+    window = limit * page + limit
+    container = get_container()
+    jobs = container.job_repository.list_recent(window)
+    filtered = _apply_filters(jobs, status=status, profile=profile, accuracy=accuracy)
+    start = (page - 1) * limit
+    page_items = filtered[start : start + limit]
+    has_more = len(filtered) > start + limit
+    payload = {
+        "jobs": [_serialize_job_for_feed(job) for job in page_items],
+        "summary": _compute_summary(filtered),
+        "accuracy": _compute_accuracy_summary(filtered),
+        "page": page,
+        "limit": limit,
+        "has_more": has_more,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    record_metric("dashboard.jobs.requested", {"limit": limit, "page": page, "status": status or "", "profile": profile or ""})
     return JSONResponse(payload)
 
 
@@ -405,6 +533,7 @@ async def api_settings_page(
         "chatgpt_models": AVAILABLE_CHATGPT_MODELS,
         "feature_flags": feature_flags,
         "csrf_token": (session or {}).get("csrf_token", ""),
+        "branding_logo_url": _branding_logo_url(),
     }
     return templates.TemplateResponse(request, "api_settings.html", context)
 
@@ -475,6 +604,7 @@ async def template_settings_page(
         "templates": template_rows,
         "template_audit": _load_template_audit(),
         "csrf_token": (session or {}).get("csrf_token", ""),
+        "branding_logo_url": _branding_logo_url(),
     }
     return templates.TemplateResponse(request, "template_settings.html", context)
 
@@ -493,6 +623,7 @@ async def flag_settings_page(
         "header_session": _summarize_session(session),
         "flags": rows,
         "csrf_token": (session or {}).get("csrf_token", ""),
+        "branding_logo_url": _branding_logo_url(),
     }
     return templates.TemplateResponse(request, "flag_settings.html", context)
 
@@ -635,6 +766,15 @@ async def preview_template_body(
     return JSONResponse({"rendered": rendered})
 
 
+@app.get("/api/templates/preview", response_model=TemplatePreviewResponse)
+async def api_templates_preview(
+    template_id: Optional[str] = None,
+    _: dict | None = Depends(require_active_session),
+) -> JSONResponse:
+    rendered = _get_template_registry().render(template_id, _build_preview_context())
+    return JSONResponse({"rendered": rendered})
+
+
 @app.delete("/settings/templates/{template_id}")
 async def delete_template_definition(
     template_id: str,
@@ -659,6 +799,7 @@ async def theme_preview(request: Request) -> HTMLResponse:
         "theme_preview.html",
         {
             "header_session": None,
+            "branding_logo_url": _branding_logo_url(),
         },
     )
 
@@ -689,36 +830,12 @@ async def upload_job(
     _: dict | None = Depends(require_active_session),
 ) -> Response:
     settings = get_settings()
-    sanitized_name = _sanitize_upload_filename(file.filename or "")
-    _validate_upload_mime(file.content_type)
-    suffix = Path(sanitized_name).suffix.lower()
     max_bytes = settings.max_audio_size_mb * 1024 * 1024
-    target_dir = Path(settings.base_input_dir) / (profile or "geral")
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / sanitized_name
-    if target.exists():
-        target = target_dir / f"{Path(sanitized_name).stem}_{int(time.time())}{suffix}"
-    total_read = 0
-    chunk_size = max(1024 * 1024, min(4 * 1024 * 1024, max_bytes // 4 or max_bytes))
-    try:
-        with target.open("wb") as dest:
-            while True:
-                chunk = await file.read(chunk_size)
-                if not chunk:
-                    break
-                total_read += len(chunk)
-                if total_read > max_bytes:
-                    dest.close()
-                    target.unlink(missing_ok=True)
-                    raise HTTPException(status_code=400, detail="Arquivo excede limite configurado.")
-                dest.write(chunk)
-    finally:
-        await file.close()
+    target, total_read = await _persist_upload_file(file, profile, max_bytes)
 
     if total_read == 0:
         target.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail="Arquivo vazio.")
-
     try:
         engine_value = EngineType(engine)
     except Exception:
@@ -732,6 +849,67 @@ async def upload_job(
         except Exception:
             flash_token = "process-error"
     return RedirectResponse(url=f"/jobs/{job.id}?flash={flash_token}", status_code=303)
+
+
+@app.get("/api/uploads/token", response_model=UploadTokenResponse)
+async def api_upload_token(
+    profile: str = "geral",
+    engine: str = "openai",
+    ttl_minutes: int = 10,
+    _: dict | None = Depends(require_active_session),
+) -> JSONResponse:
+    ttl = max(1, min(ttl_minutes, 60))
+    engine_value = engine if engine in {engine_type.value for engine_type in EngineType} else EngineType.OPENAI.value
+    token, expires = _sign_upload_token(profile=profile, engine=engine_value, ttl_minutes=ttl)
+    payload = {
+        "token": token,
+        "expires": expires,
+        "profile": profile or "geral",
+        "engine": engine_value,
+        "expires_in_minutes": ttl,
+    }
+    return JSONResponse(payload)
+
+
+@app.post("/api/uploads", response_model=UploadJobResponse)
+async def api_upload_job(
+    file: UploadFile = File(...),
+    token: str = Form(...),
+    expires: str = Form(...),
+    profile: str = Form("geral"),
+    engine: str = Form("openai"),
+    auto_process: bool = Form(False),
+    job_controller: JobController = Depends(get_job_controller_dep),
+    _: dict | None = Depends(require_active_session),
+) -> JSONResponse:
+    _validate_upload_token(token, expires, profile or "geral", engine or EngineType.OPENAI.value)
+    settings = get_settings()
+    max_bytes = settings.max_audio_size_mb * 1024 * 1024
+    target, total_read = await _persist_upload_file(file, profile, max_bytes)
+    if total_read == 0:
+        target.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    try:
+        engine_value = EngineType(engine)
+    except ValueError:
+        engine_value = EngineType.OPENAI
+    job = job_controller.ingest_file(target, profile or "geral", engine_value)
+    auto_processed = False
+    if auto_process:
+        try:
+            job_controller.process_job(job.id)
+            auto_processed = True
+        except Exception as exc:
+            logger.error("Falha ao iniciar pipeline via API", exc_info=True, extra={"job_id": job.id})
+            raise HTTPException(status_code=400, detail=str(exc))
+    return JSONResponse(
+        {
+            "job_id": job.id,
+            "status": job.status.value,
+            "profile_id": job.profile_id,
+            "auto_processed": auto_processed,
+        }
+    )
 
 
 @app.post("/jobs/{job_id}/process")
@@ -824,6 +1002,7 @@ async def job_detail(
         "locale_updated_label": locale_updated_label,
         "accuracy_snapshot": accuracy_snapshot,
         "csrf_token": (session or {}).get("csrf_token", ""),
+        "branding_logo_url": _branding_logo_url(),
     }
     return templates.TemplateResponse(request, "job_detail.html", context)
 
@@ -1083,8 +1262,34 @@ def _serialize_artifacts_dict(artifacts) -> Dict[str, str]:
     return serialized
 
 
+def _serialize_job_for_feed(job: Job) -> Dict[str, Any]:
+    metadata = job.metadata or {}
+
+    def _as_float(value: Any) -> Optional[float]:
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    requires_review = str(metadata.get("accuracy_requires_review", "")).lower() == "true"
+    return {
+        "id": job.id,
+        "source_name": job.source_path.name if job.source_path else "",
+        "profile_id": job.profile_id,
+        "status": job.status.value,
+        "language": job.language or "",
+        "accuracy_status": metadata.get("accuracy_status"),
+        "accuracy_score": _as_float(metadata.get("accuracy_score")),
+        "accuracy_wer": _as_float(metadata.get("accuracy_wer")),
+        "accuracy_requires_review": requires_review,
+        "updated_at": job.updated_at.isoformat(),
+    }
+
+
 def _validate_download_token(path: str, token: Optional[str], expires: Optional[str]) -> None:
-    secret = get_settings().webhook_secret.encode("utf-8")
+    settings = get_settings()
+    secret_value = getattr(settings, "download_token_secret", "") or settings.webhook_secret
+    secret = secret_value.encode("utf-8")
     if not token or not expires:
         raise HTTPException(status_code=401, detail="Token ausente para download.")
     try:
@@ -1103,6 +1308,44 @@ def _get_flash_message(token: Optional[str]) -> Optional[FlashPayload]:
     if not token:
         return None
     return _FLASH_MESSAGES.get(token)
+
+
+def _sign_upload_token(
+    profile: str = "geral",
+    engine: str = EngineType.OPENAI.value,
+    ttl_minutes: int = UPLOAD_TOKEN_TTL_MINUTES,
+) -> tuple[str, str]:
+    settings = get_settings()
+    secret_value = getattr(settings, "download_token_secret", "") or settings.webhook_secret
+    secret = secret_value.encode("utf-8")
+    expires_dt = datetime.now(timezone.utc) + timedelta(minutes=ttl_minutes)
+    expires = expires_dt.isoformat()
+    payload = f"{profile}:{engine}:{expires}".encode("utf-8")
+    token = hmac.new(secret, payload, hashlib.sha256).hexdigest()
+    return token, expires
+
+
+def _validate_upload_token(
+    token: Optional[str],
+    expires: Optional[str],
+    profile: str,
+    engine: str,
+) -> None:
+    settings = get_settings()
+    secret_value = getattr(settings, "download_token_secret", "") or settings.webhook_secret
+    secret = secret_value.encode("utf-8")
+    if not token or not expires:
+        raise HTTPException(status_code=401, detail="Token ausente para upload.")
+    try:
+        exp = datetime.fromisoformat(expires)
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Token invalido.")
+    if exp < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Token expirado.")
+    payload = f"{profile}:{engine}:{expires}".encode("utf-8")
+    expected = hmac.new(secret, payload, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, token):
+        raise HTTPException(status_code=401, detail="Token invalido.")
 
 
 
@@ -1125,6 +1368,8 @@ def _wants_html(request: Request) -> bool:
 
 
 def _enforce_download_rate(session_id: Optional[str]) -> None:
+    if os.getenv("OMNI_DISABLE_DOWNLOAD_RATE_LIMITS") == "1":
+        return
     key = session_id or "anonymous"
     tracker = _download_tracker.setdefault(key, deque())
     now = time.time()
@@ -1137,7 +1382,7 @@ def _enforce_download_rate(session_id: Optional[str]) -> None:
 
 def _enforce_api_rate(key: str) -> None:
     # Não aplicar rate-limit em modo teste para não quebrar suites
-    if os.getenv("TEST_MODE") == "1":
+    if os.getenv("TEST_MODE") == "1" or os.getenv("OMNI_TEST_MODE") == "1":
         return
     tracker = _api_rate_tracker.setdefault(key, deque())
     now = time.time()
@@ -1485,6 +1730,49 @@ def _guess_locale(language: Optional[str]) -> Optional[str]:
     if _LOCALE_PATTERN.match(normalized):
         return normalized
     return None
+
+def _resolve_logo_path() -> Optional[Path]:
+    if not _BRANDING_DIR.exists():
+        return None
+    for ext in _ALLOWED_LOGO_EXTS:
+        candidate = _BRANDING_DIR / f"logo{ext}"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+@app.get("/branding/logo")
+async def get_branding_logo() -> Response:
+    path = _resolve_logo_path()
+    if not path:
+        raise HTTPException(status_code=404, detail="Logomarca nao definida.")
+    return FileResponse(path)
+
+
+@app.post("/settings/branding/logo")
+async def upload_branding_logo(
+    request: Request,
+    logo: UploadFile = File(...),
+    _: dict | None = Depends(require_active_session),
+) -> Response:
+    ext = Path(logo.filename or "").suffix.lower()
+    if ext not in _ALLOWED_LOGO_EXTS:
+        raise HTTPException(status_code=400, detail="Formato de logo nao suportado.")
+    _BRANDING_DIR.mkdir(parents=True, exist_ok=True)
+    for old_ext in _ALLOWED_LOGO_EXTS:
+        try:
+            (_BRANDING_DIR / f"logo{old_ext}").unlink(missing_ok=True)
+        except OSError:
+            continue
+    content = await logo.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Arquivo vazio.")
+    target = _BRANDING_DIR / f"logo{ext}"
+    target.write_bytes(content)
+    flash = "branding-updated"
+    if "application/json" in (request.headers.get("accept") or "").lower():
+        return JSONResponse({"status": "ok", "flash": flash})
+    return RedirectResponse("/?flash=branding-updated", status_code=303)
 
 
 

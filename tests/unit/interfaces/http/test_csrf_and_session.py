@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
+import pytest
 
 from interfaces.http.app import app
 from interfaces.http.dependencies import get_session_service
 from application.services.session_service import SessionService
 from pathlib import Path
+
+
+@pytest.fixture(autouse=True)
+def enable_csrf_behavior(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
 
 
 def _session_service(tmp_path: Path) -> SessionService:

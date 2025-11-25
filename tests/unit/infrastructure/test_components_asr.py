@@ -38,6 +38,43 @@ def test_build_asr_clients_supports_local_engine(monkeypatch):
     assert "openai" not in clients
 
 
+def test_build_asr_clients_accepts_large_v3(monkeypatch):
+    captured = {}
+
+    def fake_client(model_size: str, device: str = "cpu"):
+        captured["model_size"] = model_size
+        captured["device"] = device
+        return "local-client"
+
+    settings = _base_settings(asr_engine="local", openai_api_key="", local_whisper_model_size="large-v3")
+    monkeypatch.setattr(components_asr, "FasterWhisperClient", fake_client)
+    clients = components_asr._build_asr_clients(settings)  # type: ignore[attr-defined]
+    assert "local" in clients
+    assert captured["model_size"] == "large-v3"
+
+
+def test_build_asr_clients_accepts_all_allowed(monkeypatch):
+    seen = []
+
+    def fake_client(model_size: str, device: str = "cpu"):
+        seen.append(model_size)
+        return f"client-{model_size}"
+
+    for model in components_asr.ALLOWED_LOCAL_WHISPER_MODELS:  # type: ignore[attr-defined]
+        settings = _base_settings(asr_engine="local", openai_api_key="", local_whisper_model_size=model)
+        monkeypatch.setattr(components_asr, "FasterWhisperClient", fake_client)
+        clients = components_asr._build_asr_clients(settings)  # type: ignore[attr-defined]
+        assert "local" in clients
+        assert seen[-1] == model
+
+
+def test_build_asr_clients_rejects_invalid_local(monkeypatch):
+    settings = _base_settings(asr_engine="local", openai_api_key="", local_whisper_model_size="invalid-model")
+    monkeypatch.setattr(components_asr, "FasterWhisperClient", lambda *args, **kwargs: "noop")
+    with pytest.raises(RuntimeError):
+        components_asr._build_asr_clients(settings)  # type: ignore[attr-defined]
+
+
 def test_build_core_usecases_wire_services(monkeypatch):
     settings = _base_settings()
     job_repo = SimpleNamespace()

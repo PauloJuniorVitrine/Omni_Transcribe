@@ -26,7 +26,15 @@ class StubAsrClient:
             }
         ]
 
-    def transcribe(self, *, file_path: Path, language: str | None, task: str):
+    def transcribe(
+        self,
+        *,
+        file_path: Path,
+        language: str | None,
+        task: str,
+        response_format: str | None = None,
+        chunking_strategy: str | None = None,
+    ):
         self.calls.append((file_path, language, task))
         idx = min(len(self.calls) - 1, len(self.responses) - 1)
         return self.responses[idx]
@@ -122,7 +130,15 @@ def test_whisper_service_handles_stat_error_without_chunking(monkeypatch, tmp_pa
     profile = Profile(id="geral", meta={}, prompt_body="body")
 
     class _Client(StubAsrClient):
-        def transcribe(self, *, file_path: Path, language: str | None, task: str):
+        def transcribe(
+            self,
+            *,
+            file_path: Path,
+            language: str | None,
+            task: str,
+            response_format: str | None = None,
+            chunking_strategy: str | None = None,
+        ):
             return {
                 "text": "ok",
                 "segments": [],
@@ -137,7 +153,7 @@ def test_whisper_service_handles_stat_error_without_chunking(monkeypatch, tmp_pa
         def split(self, file_path: Path):
             raise AssertionError("Should not chunk when stat fails")
 
-    def _stat_raises(self):
+    def _stat_raises(self, follow_symlinks=True):
         raise OSError("stat failed")
 
     monkeypatch.setattr(Path, "stat", _stat_raises, raising=False)

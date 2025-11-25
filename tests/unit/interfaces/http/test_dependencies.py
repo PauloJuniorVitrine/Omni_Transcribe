@@ -25,6 +25,14 @@ def _make_request(method: str = "GET", headers: list[tuple[bytes, bytes]] | None
     return Request(scope, receive)
 
 
+@pytest.fixture(autouse=True)
+def disable_test_mode(monkeypatch):
+    monkeypatch.setenv("TEST_MODE", "0")
+    monkeypatch.setenv("OMNI_TEST_MODE", "0")
+    settings = SimpleNamespace(app_env="development", test_mode=False)
+    monkeypatch.setattr(dependencies, "get_app_settings", lambda: settings)
+
+
 def test_get_webhook_service_caches_instances(tmp_path, monkeypatch):
     dependencies._webhook_service_cache.clear()
     settings = SimpleNamespace(
