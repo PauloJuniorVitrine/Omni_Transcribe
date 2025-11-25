@@ -64,7 +64,10 @@ class ProcessJobPipeline:
             if self.accuracy_guard:
                 self.accuracy_guard.evaluate(job_id, transcription, post_edit)
             current_stage = "artifacts"
-            artifacts = self._run_stage("artifacts", lambda: self.artifact_use_case.execute(job_id, post_edit), job_id)
+            artifact_result = self._run_stage(
+                "artifacts", lambda: self.artifact_use_case.execute(job_id, post_edit), job_id
+            )
+            artifacts = list(artifact_result)
             self._record_artifact_metrics(job_id, artifacts)
             record_metric("pipeline.completed", {"job_id": job_id, "artifact_count": len(artifacts)})
             return artifacts
