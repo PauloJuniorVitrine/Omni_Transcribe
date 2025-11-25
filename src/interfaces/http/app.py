@@ -16,7 +16,7 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from collections import deque
 import time
-from typing import Any, Deque, Dict, List, Optional, TypedDict, Tuple
+from typing import Any, Deque, Dict, List, Optional, TypedDict
 import requests
 
 from fastapi import Depends, FastAPI, Form, HTTPException, Request, UploadFile, File

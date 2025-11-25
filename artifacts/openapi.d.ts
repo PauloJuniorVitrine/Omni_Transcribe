@@ -143,6 +143,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Dashboard Jobs */
+        get: operations["api_dashboard_jobs_api_dashboard_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings/api": {
         parameters: {
             query?: never;
@@ -248,6 +265,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/templates/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Templates Preview */
+        get: operations["api_templates_preview_api_templates_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/settings/templates/{template_id}": {
         parameters: {
             query?: never;
@@ -310,6 +344,40 @@ export interface paths {
         put?: never;
         /** Upload Job */
         post: operations["upload_job_jobs_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/uploads/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Upload Token */
+        get: operations["api_upload_token_api_uploads_token_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Api Upload Job */
+        post: operations["api_upload_job_api_uploads_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -469,6 +537,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/branding/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Branding Logo */
+        get: operations["get_branding_logo_branding_logo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/branding/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload Branding Logo */
+        post: operations["upload_branding_logo_settings_branding_logo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -510,6 +612,33 @@ export interface components {
              * @default
              */
             chatgpt_model: string;
+        };
+        /** Body_api_upload_job_api_uploads_post */
+        Body_api_upload_job_api_uploads_post: {
+            /**
+             * File
+             * Format: binary
+             */
+            file: string;
+            /** Token */
+            token: string;
+            /** Expires */
+            expires: string;
+            /**
+             * Profile
+             * @default geral
+             */
+            profile: string;
+            /**
+             * Engine
+             * @default openai
+             */
+            engine: string;
+            /**
+             * Auto Process
+             * @default false
+             */
+            auto_process: boolean;
         };
         /** Body_create_template_definition_settings_templates_post */
         Body_create_template_definition_settings_templates_post: {
@@ -583,6 +712,14 @@ export interface components {
              */
             locale: string;
         };
+        /** Body_upload_branding_logo_settings_branding_logo_post */
+        Body_upload_branding_logo_settings_branding_logo_post: {
+            /**
+             * Logo
+             * Format: binary
+             */
+            logo: string;
+        };
         /** Body_upload_job_jobs_upload_post */
         Body_upload_job_jobs_upload_post: {
             /**
@@ -654,6 +791,32 @@ export interface components {
              */
             icon: string;
         };
+        /** JobFeedItem */
+        JobFeedItem: {
+            /** Id */
+            id: string;
+            /** Source Name */
+            source_name: string;
+            /** Profile Id */
+            profile_id: string;
+            /** Status */
+            status: string;
+            /** Language */
+            language?: string | null;
+            /** Accuracy Status */
+            accuracy_status?: string | null;
+            /** Accuracy Score */
+            accuracy_score?: number | null;
+            /** Accuracy Wer */
+            accuracy_wer?: number | null;
+            /**
+             * Accuracy Requires Review
+             * @default false
+             */
+            accuracy_requires_review: boolean;
+            /** Updated At */
+            updated_at: string;
+        };
         /** JobLogsResponse */
         JobLogsResponse: {
             /** Job Id */
@@ -677,6 +840,24 @@ export interface components {
             generated_at: string;
             /** Logs */
             logs: components["schemas"]["LogEntryPayload"][];
+        };
+        /** JobsFeedResponse */
+        JobsFeedResponse: {
+            /** Jobs */
+            jobs: components["schemas"]["JobFeedItem"][];
+            summary: components["schemas"]["SummaryCounters"];
+            accuracy: components["schemas"]["AccuracySummary"];
+            /** Page */
+            page: number;
+            /** Limit */
+            limit: number;
+            /** Has More */
+            has_more: boolean;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
         };
         /** LogEntryPayload */
         LogEntryPayload: {
@@ -752,6 +933,30 @@ export interface components {
             updated_at_human?: string | null;
             /** Message */
             message?: string | null;
+        };
+        /** UploadJobResponse */
+        UploadJobResponse: {
+            /** Job Id */
+            job_id: string;
+            /** Status */
+            status: string;
+            /** Profile Id */
+            profile_id: string;
+            /** Auto Processed */
+            auto_processed: boolean;
+        };
+        /** UploadTokenResponse */
+        UploadTokenResponse: {
+            /** Token */
+            token: string;
+            /** Expires */
+            expires: string;
+            /** Profile */
+            profile: string;
+            /** Engine */
+            engine: string;
+            /** Expires In Minutes */
+            expires_in_minutes: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -884,6 +1089,7 @@ export interface operations {
         parameters: {
             query?: {
                 limit?: number;
+                page?: number;
                 status?: string | null;
                 profile?: string | null;
                 accuracy?: string | null;
@@ -983,6 +1189,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DashboardIncidentsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_dashboard_jobs_api_dashboard_jobs_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                profile?: string | null;
+                accuracy?: string | null;
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobsFeedResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1241,6 +1482,37 @@ export interface operations {
             };
         };
     };
+    api_templates_preview_api_templates_preview_get: {
+        parameters: {
+            query?: {
+                template_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplatePreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_template_definition_settings_templates__template_id__delete: {
         parameters: {
             query?: never;
@@ -1343,6 +1615,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_upload_token_api_uploads_token_get: {
+        parameters: {
+            query?: {
+                profile?: string;
+                engine?: string;
+                ttl_minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadTokenResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_upload_job_api_uploads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_api_upload_job_api_uploads_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadJobResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1622,6 +1960,59 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_branding_logo_branding_logo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    upload_branding_logo_settings_branding_logo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_branding_logo_settings_branding_logo_post"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

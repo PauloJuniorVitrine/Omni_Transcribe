@@ -157,8 +157,12 @@ class StubJobController:
         self.job_repository = repository
         self.processed: list[str] = []
 
-    def list_jobs(self, limit: int = 20):
-        return self.job_repository.list_recent(limit)
+    def list_jobs(self, limit: int = 20, page: int = 1):
+        jobs = self.job_repository.list_recent(limit * page if page > 1 else limit)
+        start = (page - 1) * limit
+        subset = jobs[start : start + limit]
+        has_more = len(jobs) > start + limit
+        return subset, has_more
 
     def ingest_file(self, path: Path, profile_id: str, engine: EngineType) -> Job:
         job_id = f"job-{int(time.time())}"

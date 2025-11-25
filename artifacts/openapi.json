@@ -916,6 +916,104 @@
         }
       }
     },
+    "/api/uploads/token": {
+      "get": {
+        "summary": "Api Upload Token",
+        "operationId": "api_upload_token_api_uploads_token_get",
+        "parameters": [
+          {
+            "name": "profile",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "geral",
+              "title": "Profile"
+            }
+          },
+          {
+            "name": "engine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "openai",
+              "title": "Engine"
+            }
+          },
+          {
+            "name": "ttl_minutes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Ttl Minutes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadTokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/uploads": {
+      "post": {
+        "summary": "Api Upload Job",
+        "operationId": "api_upload_job_api_uploads_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_api_upload_job_api_uploads_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadJobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/jobs/{job_id}/process": {
       "post": {
         "summary": "Ui Process Job",
@@ -1475,6 +1573,45 @@
           "target"
         ],
         "title": "Body_api_settings_update_settings_api_post"
+      },
+      "Body_api_upload_job_api_uploads_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expires": {
+            "type": "string",
+            "title": "Expires"
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile",
+            "default": "geral"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine",
+            "default": "openai"
+          },
+          "auto_process": {
+            "type": "boolean",
+            "title": "Auto Process",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "token",
+          "expires"
+        ],
+        "title": "Body_api_upload_job_api_uploads_post"
       },
       "Body_create_template_definition_settings_templates_post": {
         "properties": {
@@ -2163,6 +2300,67 @@
           "template"
         ],
         "title": "UpdateTemplateResponse"
+      },
+      "UploadJobResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "auto_processed": {
+            "type": "boolean",
+            "title": "Auto Processed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "status",
+          "profile_id",
+          "auto_processed"
+        ],
+        "title": "UploadJobResponse"
+      },
+      "UploadTokenResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expires": {
+            "type": "string",
+            "title": "Expires"
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "title": "Expires In Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "expires",
+          "profile",
+          "engine",
+          "expires_in_minutes"
+        ],
+        "title": "UploadTokenResponse"
       },
       "ValidationError": {
         "properties": {
