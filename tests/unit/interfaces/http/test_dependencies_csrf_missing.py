@@ -23,7 +23,8 @@ def disable_test_mode(monkeypatch):
     monkeypatch.setenv("OMNI_TEST_MODE", "0")
 
 
-def test_require_active_session_missing_csrf_raises(monkeypatch):
+@pytest.mark.asyncio
+async def test_require_active_session_missing_csrf_raises(monkeypatch):
     monkeypatch.setattr("interfaces.http.dependencies.get_session_service", lambda: _SessionService())
     settings = type("S", (), {"test_mode": False})()
     monkeypatch.setattr("interfaces.http.dependencies.get_app_settings", lambda: settings)
@@ -38,5 +39,4 @@ def test_require_active_session_missing_csrf_raises(monkeypatch):
             return {}
 
     with pytest.raises(HTTPException):
-        import asyncio
-        asyncio.get_event_loop().run_until_complete(require_active_session(_Req()))
+        await require_active_session(_Req())

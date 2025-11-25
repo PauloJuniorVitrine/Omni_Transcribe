@@ -1,0 +1,14 @@
+[run]
+branch = True
+source =
+    src
+omit =
+    tests/*
+    scripts/*
+    infrastructure/api/*
+    infrastructure/container/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__

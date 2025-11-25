@@ -459,3 +459,21 @@
 {"timestamp": "2025-11-25T13:24:56.428645+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
 {"timestamp": "2025-11-25T13:24:56.451926+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
 {"timestamp": "2025-11-25T13:24:56.482897+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-25T15:18:53.068080+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-25T15:18:53.099205+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-25T15:18:53.240585+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-25T15:18:53.286491+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-25T15:18:53.329256+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-25T15:18:53.372925+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-25T15:19:53.919768+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-25T15:19:53.945322+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-25T15:19:54.043596+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-25T15:19:54.085038+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-25T15:19:54.102388+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-25T15:19:54.180106+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}
+{"timestamp": "2025-11-25T15:26:00.756312+00:00", "action": "create", "template_id": "cliente-x", "metadata": {"name": "Cliente X", "description": "Formatação específica"}}
+{"timestamp": "2025-11-25T15:26:00.780982+00:00", "action": "delete", "template_id": "cliente-x", "metadata": {}}
+{"timestamp": "2025-11-25T15:26:00.941832+00:00", "action": "create", "template_id": "cliente-y", "metadata": {"name": "Cliente Y", "description": "custom"}}
+{"timestamp": "2025-11-25T15:26:00.995238+00:00", "action": "create", "template_id": "cliente-redirect", "metadata": {"name": "Cliente Redirect", "description": ""}}
+{"timestamp": "2025-11-25T15:26:01.012584+00:00", "action": "update", "template_id": "cliente-r", "metadata": {"name": "Cliente R", "description": ""}}
+{"timestamp": "2025-11-25T15:26:01.045970+00:00", "action": "update", "template_id": "cliente-q", "metadata": {"name": "Cliente Q+", "description": "Atualizado"}}

@@ -59,6 +59,8 @@ class CreateJobFromInbox:
             timestamp = datetime.now(timezone.utc).isoformat()
             if normalized_locale:
                 metadata["delivery_locale"] = normalized_locale
+            else:
+                metadata.setdefault("delivery_locale", preferred_locale)
             metadata["delivery_locale_updated_at"] = timestamp
         job = Job(
             id=job_id,

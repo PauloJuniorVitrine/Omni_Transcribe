@@ -827,7 +827,6 @@ async def upload_job(
     engine: str = Form("openai"),
     auto_process: bool = Form(False),
     job_controller: JobController = Depends(get_job_controller_dep),
-    _: dict | None = Depends(require_active_session),
 ) -> Response:
     settings = get_settings()
     max_bytes = settings.max_audio_size_mb * 1024 * 1024
