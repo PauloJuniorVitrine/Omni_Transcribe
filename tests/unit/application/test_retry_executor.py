@@ -39,3 +39,10 @@ def test_retry_executor_raises_last_exception(monkeypatch):
         executor.run(always_fail)
 
     assert attempts["count"] == 2
+
+
+def test_retry_executor_zero_max_attempts_raises_assertion():
+    executor = RetryExecutor(RetryConfig(max_attempts=0))
+
+    with pytest.raises(AssertionError):
+        executor.run(lambda: None)

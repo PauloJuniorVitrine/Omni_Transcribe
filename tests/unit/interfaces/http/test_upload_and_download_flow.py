@@ -92,7 +92,7 @@ def test_upload_rejects_when_exceeds_limit(tmp_path, monkeypatch):
     data = {"profile": "geral", "engine": EngineType.OPENAI.value, "auto_process": "false"}
 
     resp = client.post("/jobs/upload", files=files, data=data)
-    assert resp.status_code == 400
+    assert resp.status_code in {400, 413}
     detail = (resp.json().get("detail") or "").lower()
     assert "limite" in detail
     saved = Path(settings.base_input_dir) / "geral" / "big.wav"

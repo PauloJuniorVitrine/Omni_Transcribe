@@ -28,40 +28,40 @@ class DeliveryTemplateRegistry:
         self._localized_templates: Dict[Tuple[str, str], DeliveryTemplate] = {}
         self._loaded_paths: Dict[str, DeliveryTemplate] = {}
         self._list_cache: List[DeliveryTemplate] | None = None
+        self._load_all_templates()
 
     def list_templates(self) -> List[DeliveryTemplate]:
         if self._list_cache is not None:
             return list(self._list_cache)
-        templates: List[DeliveryTemplate] = []
-        for path in sorted(self.base_dir.rglob("*.template.txt")):
-            resolved = str(path.resolve())
-            document = self._loaded_paths.get(resolved)
-            if not document:
-                document_id = self._load_template(path)
-                document = self._base_templates.get(document_id)
-            if document:
-                templates.append(document)
-        self._list_cache = templates
-        return list(templates)
+        templates: Dict[str, DeliveryTemplate] = {}
+        for template in self._base_templates.values():
+            templates.setdefault(template.id, template)
+        ordered = list(templates.values())
+        self._list_cache = ordered
+        return list(ordered)
 
     def get(self, template_id: Optional[str]) -> DeliveryTemplate:
         """Retorna o template lógico e carrega se necessário."""
         candidate = (template_id or self.default_template_id).strip()
+        if not candidate:
+            raise FileNotFoundError("Nenhum template definido.")
         if candidate not in self._base_templates:
             path = self.base_dir / f"{candidate}.template.txt"
-            if not path.exists():
-                path = self.base_dir / f"{self.default_template_id}.template.txt"
-            loaded_id = self._load_template(path)
-            candidate = loaded_id
+            if path.exists():
+                loaded_id = self._load_template(path)
+                return self._base_templates[loaded_id]
+            default = self._base_templates.get(self.default_template_id)
+            if default:
+                return default
+            raise FileNotFoundError(f"Template '{candidate}' nao encontrado.")
         return self._base_templates[candidate]
 
     @property
     def default_template_id(self) -> str:
-        default_path = self.base_dir / "default.template.txt"
-        if default_path.exists():
+        if "default" in self._base_templates:
             return "default"
-        for path in self.base_dir.glob("*.template.txt"):
-            return path.stem.replace(".template", "")
+        if self._base_templates:
+            return next(iter(self._base_templates))
         return "default"
 
     def render(self, template_id: Optional[str], context: Dict[str, str], language: Optional[str] = None) -> str:
@@ -126,6 +126,13 @@ class DeliveryTemplateRegistry:
                 self._base_templates.setdefault(stem_id, document)
         self._invalidate_cache()
         return template_id
+
+    def _load_all_templates(self) -> None:
+        for path in sorted(self.base_dir.rglob("*.template.txt")):
+            try:
+                self._load_template(path)
+            except FileNotFoundError:
+                continue
 
     def _invalidate_cache(self) -> None:
         self._list_cache = None

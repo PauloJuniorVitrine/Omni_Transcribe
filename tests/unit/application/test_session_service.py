@@ -58,3 +58,24 @@ def test_ensure_csrf_token_persists(tmp_path):
 
     token_c = service.ensure_csrf_token(session_id)
     assert token_c and token_c != token_a
+
+
+def test_get_session_returns_none_for_missing_id(tmp_path):
+    service = _make_service(tmp_path)
+    assert service.get_session("unknown") is None
+
+
+def test_get_session_returns_none_for_none_id(tmp_path):
+    service = _make_service(tmp_path)
+    assert service.get_session(None) is None
+
+
+def test_ensure_csrf_token_without_session_returns_new_value(tmp_path):
+    service = _make_service(tmp_path)
+    token = service.ensure_csrf_token("missing")
+    assert token
+
+
+def test_invalidate_session_handles_unknown_id(tmp_path):
+    service = _make_service(tmp_path)
+    service.invalidate_session("ghost")

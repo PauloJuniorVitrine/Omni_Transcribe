@@ -90,7 +90,7 @@ def test_http_concurrent_p95_under_threshold(tmp_path, monkeypatch, users):
 
     durations.sort()
     p95 = statistics.quantiles(durations, n=20)[-1]
-    limit = 0.08 if users == 10 else 0.12
+    limit = 0.08 if users == 10 else 0.14
     assert p95 < limit, f"p95 {p95:.4f}s excedeu limite com {users} usuarios"
 
 

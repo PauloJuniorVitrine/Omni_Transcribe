@@ -36,6 +36,30 @@ def test_configure_logging_is_idempotent(monkeypatch):
     assert second is logger
     assert len(logger.handlers) == handler_count
 
+def test_configure_logging_ignores_reconfiguration(monkeypatch):
+    import application.logging_config as logging_config_module
+
+    root_logger = logging.getLogger()
+    initial_handlers = list(root_logger.handlers)
+    monkeypatch.setattr(logging_config_module, "_configured", True)
+
+    logger = configure_logging("WARNING")
+
+    assert logger is logging.getLogger("transcribeflow")
+    assert len(root_logger.handlers) == len(initial_handlers)
+    assert logger.level == logging.WARNING
+
+
+def test_configure_logging_skips_handler_registration_after_first(tmp_path, monkeypatch):
+    root_logger = logging.getLogger()
+    handler_count = len(root_logger.handlers)
+    # simulate partial config by leaving _configured False but reusing JsonLogFormatter path
+    monkeypatch.setattr("application.logging_config._configured", False)
+    first = configure_logging("INFO")
+    second = configure_logging("DEBUG")
+    assert first is second
+    assert len(root_logger.handlers) == handler_count + 1
+
 
 def test_delivery_template_registry_lists_and_render(tmp_path):
     template_path = tmp_path / "default.template.txt"

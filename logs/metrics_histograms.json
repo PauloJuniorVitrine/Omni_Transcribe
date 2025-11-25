@@ -1,9 +1,16 @@
 {
+  "pipeline.stage.latency|bucket_size=50|stage=post_edit,success=True": {
+    "0": 110,
+    "50": 2
+  },
   "pipeline.stage.latency|bucket_size=50|stage=asr,success=True": {
-    "150": 1
+    "0": 102,
+    "50": 6
   },
   "pipeline.stage.latency|bucket_size=50|stage=artifacts,success=True": {
-    "0": 1,
-    "50": 1
+    "0": 89,
+    "100": 4,
+    "50": 15,
+    "700": 1
   }
 }
